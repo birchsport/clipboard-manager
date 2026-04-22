@@ -1,0 +1,71 @@
+name: ClipHistory
+options:
+  bundleIdPrefix: dev.birch.cliphistory
+  deploymentTarget:
+    macOS: "14.0"
+  developmentLanguage: en
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+configFiles:
+  Debug: Config/Signing.xcconfig
+  Release: Config/Signing.xcconfig
+
+settings:
+  base:
+    SWIFT_VERSION: "5.10"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    ENABLE_HARDENED_RUNTIME: YES
+    DEAD_CODE_STRIPPING: YES
+
+packages:
+  KeyboardShortcuts:
+    url: https://github.com/sindresorhus/KeyboardShortcuts
+    from: "2.0.0"
+  GRDB:
+    url: https://github.com/groue/GRDB.swift
+    from: "6.0.0"
+
+targets:
+  ClipHistory:
+    type: application
+    platform: macOS
+    sources:
+      - path: ClipHistory
+        excludes:
+          - "Info.plist"
+          - "ClipHistory.entitlements"
+    info:
+      path: ClipHistory/Info.plist
+      properties:
+        LSUIElement: true
+        CFBundleName: ClipHistory
+        CFBundleDisplayName: ClipHistory
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        CFBundleIdentifier: "$(PRODUCT_BUNDLE_IDENTIFIER)"
+        CFBundleExecutable: "$(EXECUTABLE_NAME)"
+        CFBundlePackageType: APPL
+        LSApplicationCategoryType: public.app-category.productivity
+        LSMinimumSystemVersion: "$(MACOSX_DEPLOYMENT_TARGET)"
+        NSHumanReadableCopyright: ""
+        NSAppleEventsUsageDescription: "ClipHistory sends ⌘V to the previously focused app after you pick an entry from the panel."
+        NSPrincipalClass: NSApplication
+    entitlements:
+      path: ClipHistory/ClipHistory.entitlements
+      properties:
+        com.apple.security.app-sandbox: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.birch.cliphistory.ClipHistory
+        PRODUCT_NAME: ClipHistory
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_ENTITLEMENTS: ClipHistory/ClipHistory.entitlements
+        COMBINE_HIDPI_IMAGES: YES
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+    dependencies:
+      - package: KeyboardShortcuts
+      - package: GRDB
+        product: GRDB

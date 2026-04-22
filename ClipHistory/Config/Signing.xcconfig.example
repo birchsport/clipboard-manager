@@ -1,0 +1,20 @@
+// Signing configuration for local development.
+//
+// How to use:
+//   1. Copy this file to `Signing.xcconfig` in the same directory.
+//   2. Fill in DEVELOPMENT_TEAM with your 10-character Apple Developer Team ID
+//      (Xcode → Settings → Accounts → select account → the "Team ID" column, or
+//      developer.apple.com/account → Membership).
+//   3. Run `xcodegen generate` from the ClipHistory directory.
+//   4. Open ClipHistory.xcodeproj and build.
+//
+// Signing.xcconfig is gitignored — this `.example` file is what's committed.
+//
+// Why bother: ad-hoc-signed builds change signature on every rebuild, which
+// causes macOS's TCC subsystem to treat each rebuild as a new app and
+// repeatedly re-prompt for Accessibility access. A stable development cert
+// makes TCC remember your grant across rebuilds.
+
+DEVELOPMENT_TEAM = REPLACE_WITH_TEAM_ID
+CODE_SIGN_STYLE = Automatic
+CODE_SIGN_IDENTITY = Apple Development
