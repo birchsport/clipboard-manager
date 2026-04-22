@@ -9,27 +9,6 @@ Ordered loosely by effort-to-impact ratio (highest first).
 
 ## Dev-leaning power moves
 
-These are small, self-contained, and immediately useful for anyone who touches
-code or writes in markdown.
-
-### Transformations on paste
-`⌘T` over the selected entry opens a menu of transforms that replace the
-clipboard payload before `⌘V` fires:
-
-- Pretty JSON / minify JSON
-- Base64 encode / decode
-- URL encode / decode
-- Hex → UTF-8 and back
-- Change case: UPPER / lower / Title / camelCase / snake_case / kebab-case
-- Strip ANSI escape codes
-- Strip RTF / HTML → plain text
-- Extract URLs / emails from text
-
-**Implementation sketch:** a `Transform` protocol with a `name`, an optional
-`isApplicable(_:EntryKind)`, and `apply(_:EntryKind) -> EntryKind?`. Register
-each transform in a registry; render the applicable ones in a SwiftUI menu
-keyed by `⌘T`. No new dependencies.
-
 ### Template paste
 `⌘⇧T` wraps the selected entry in a template before pasting:
 
@@ -56,6 +35,26 @@ Select multiple entries (`⌘`-click or marked), hit `⏎`: writes them all to t
 clipboard joined by a configurable separator (newline, comma, tab, space), then
 pastes.
 
+### Structured tree view
+Collapsible JSON / YAML / XML tree in the preview pane, with key/value colours
+and per-node copy. The existing syntax-highlighted preview already makes code
+readable; tree view makes structure navigable.
+
+### Stack trace / file-path actions
+Detect `path/to/file.swift:42[:col]` in the selected entry and expose an
+"Open in Editor" action for VS Code / Cursor / Xcode via their URL schemes.
+Paired with a "Paste as fenced code block" action that wraps the entry in
+```` ```lang\n…\n``` ```` using the detected language.
+
+### Power-user search syntax
+Prefix directives in the search query: `type:json`, `type:image`,
+`from:Xcode`, `since:1h`. Falls back to fuzzy match when no directive parses.
+
+### cURL → code conversion
+Paste a `curl -X POST https://…` command, transform it to a Python `requests`
+call, a JavaScript `fetch`, or a Go `net/http` request. Own implementation
+effort — single-feature project.
+
 ---
 
 ## Content-aware intelligence
@@ -67,21 +66,6 @@ no network.
 
 **Why it differentiates:** Alfred needs a workflow. Raycast has it but only in
 their AI tier. Native Vision + ~50 LOC gives feature parity for free.
-
-### Type-aware row actions
-Each entry exposes a small contextual action menu based on detected type:
-
-- **URL** → "Open in browser", "Copy as markdown link (fetch title)"
-- **Hex color (`#RRGGBB`, `rgb(...)`)** → color swatch preview, "copy as rgb()"
-  / "copy as hsl()"
-- **JSON** → formatted tree preview with collapsible nodes
-- **Email** → "Compose mail to…"
-- **Phone number** → "Call via FaceTime / copy digits only"
-- **ISO date / epoch** → "copy as local time / UTC / epoch"
-
-**Implementation sketch:** a lightweight classifier that runs once per entry on
-ingest and tags it with detected types. Display tags as chips in the row;
-⌘-click or `⌘A` opens the relevant menu.
 
 ### Entropy-based secret filter
 Augment the existing `nspasteboard.org` concealed-type check with a heuristic:
@@ -107,13 +91,14 @@ AWS keys). Keep a preference to disable.
 **Implementation sketch:** new `profile_id` column on `entries`; repository
 queries filter by active profile. Profile metadata in `UserDefaults`.
 
-### Per-app exclusion list
-Never capture clipboard changes while specified apps are frontmost. Default
-exclusions: 1Password, Bitwarden, Keychain Access. User-editable.
+### Per-app paste rules
+Always paste plain into Slack, or always paste formatted into Notes. A
+per-bundle-id setting that flips `asPlainText` at paste time.
 
-**Implementation sketch:** in `ClipboardWatcher.tick`, read
-`NSWorkspace.shared.frontmostApplication.bundleIdentifier` and skip capture
-when it's in the exclusion set.
+### Auto-expanding snippets
+Type a trigger (e.g. `;sig`) anywhere and have it expand inline the way
+TextExpander / Alfred snippets work. Requires a global keystroke monitor
+(AX-trust-bound) and a trie-based matcher scoped to allowed apps.
 
 ---
 
@@ -148,8 +133,6 @@ date-ranged Markdown file with entries grouped by source app.
 
 ## Smaller nice-to-haves
 
-- **Quick Look preview** — Space-bar on an entry opens a larger Quick Look panel
-  (great for images).
 - **Pin groups** — pins organized into named collections you can cycle through.
 - **Clipboard "chain" replay** — record a sequence of copies, replay them into
   a target app with a small inter-paste delay (form-filling, batch entry).
@@ -159,7 +142,7 @@ date-ranged Markdown file with entries grouped by source app.
   dedup (e.g., trimming trailing whitespace variants of the same text) would
   reduce clutter.
 - **Keyboard grammar for compound actions** — `⌘K` then a single letter for
-  common actions: `⌘K t` transform, `⌘K d` diff, `⌘K c` chain.
+  common actions; chain diff / chain replay from the same root.
 
 ---
 
