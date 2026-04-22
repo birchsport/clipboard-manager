@@ -20,9 +20,9 @@ falls short (nonactivating panels, global hotkeys, focus capture).
   (full-size images, larger monospaced text, file paths with icons). Arrow
   keys still navigate while the overlay is open.
 - ⌘T opens a **transform picker** over the selected text entry — pretty/minify
-  JSON, Base64 / URL en-decode, case conversions (UPPER / lower / Title /
-  camel / snake / kebab), strip ANSI / HTML, extract URLs / emails. Fuzzy-
-  search transforms by name, ⏎ applies and pastes.
+  JSON, decode JWT, Base64 / URL en-decode, case conversions (UPPER / lower /
+  Title / camel / snake / kebab), strip ANSI / HTML, extract URLs / emails.
+  Fuzzy-search transforms by name, ⏎ applies and pastes.
 - ⌘S opens a **snippet picker** of user-authored canned text, managed in
   Settings → Snippets. Supports placeholders: `{clipboard}`, `{date[:FMT]}`,
   `{time[:FMT]}`, `{uuid}`, `{newline}`, `{tab}`, plus `{{` / `}}` for

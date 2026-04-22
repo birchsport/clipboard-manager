@@ -48,6 +48,83 @@ struct MinifyJSONTransform: TextTransform {
     }
 }
 
+// MARK: - JWT
+
+struct DecodeJWTTransform: TextTransform {
+    let id = "jwt.decode"
+    let displayName = "Decode JWT"
+
+    /// `header.payload.signature`, each a base64url-encoded segment.
+    private static let shape = try! NSRegularExpression(
+        pattern: #"^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$"#,
+        options: []
+    )
+
+    func isApplicable(to text: String) -> Bool {
+        let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let range = NSRange(t.startIndex..., in: t)
+        guard Self.shape.firstMatch(in: t, range: range) != nil else { return false }
+        // Structural match isn't enough — lots of three-dotted base64 tokens
+        // aren't JWTs. Require the header to decode to JSON with a plausible
+        // shape (a `typ` or `alg` field is the convention).
+        let parts = t.split(separator: ".", omittingEmptySubsequences: false)
+        guard parts.count == 3,
+              let header = Self.decodeJSON(String(parts[0])) as? [String: Any] else {
+            return false
+        }
+        return header["typ"] != nil || header["alg"] != nil
+    }
+
+    func apply(to text: String) -> String? {
+        let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let parts = t.split(separator: ".", omittingEmptySubsequences: false)
+        guard parts.count == 3 else { return nil }
+
+        guard let header = Self.decodeJSON(String(parts[0])),
+              let payload = Self.decodeJSON(String(parts[1])),
+              let headerJSON = Self.prettyJSON(header),
+              let payloadJSON = Self.prettyJSON(payload) else {
+            return nil
+        }
+
+        // Signature is opaque bytes — not worth stringifying. Surface it as
+        // "<N bytes>" so the reader can see it exists without noise.
+        let sigBytes = Self.base64URLDecode(String(parts[2]))?.count ?? 0
+
+        return """
+        // header
+        \(headerJSON)
+
+        // payload
+        \(payloadJSON)
+
+        // signature: \(sigBytes) bytes
+        """
+    }
+
+    // MARK: - Helpers
+
+    private static func base64URLDecode(_ s: String) -> Data? {
+        var b = s.replacingOccurrences(of: "-", with: "+")
+                 .replacingOccurrences(of: "_", with: "/")
+        while b.count % 4 != 0 { b.append("=") }
+        return Data(base64Encoded: b)
+    }
+
+    private static func decodeJSON(_ segment: String) -> Any? {
+        guard let data = base64URLDecode(segment) else { return nil }
+        return try? JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
+    }
+
+    private static func prettyJSON(_ obj: Any) -> String? {
+        guard let data = try? JSONSerialization.data(
+            withJSONObject: obj,
+            options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        ) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+}
+
 // MARK: - Base64
 
 struct Base64EncodeTransform: TextTransform {

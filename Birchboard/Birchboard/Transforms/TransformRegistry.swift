@@ -7,6 +7,7 @@ enum TransformRegistry {
     static let all: [TextTransform] = [
         PrettyJSONTransform(),
         MinifyJSONTransform(),
+        DecodeJWTTransform(),
         Base64EncodeTransform(),
         Base64DecodeTransform(),
         URLEncodeTransform(),

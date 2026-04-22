@@ -53,6 +53,7 @@ The other 10% is where it earns its keep:
 Replace the clipboard payload with one of 16 transforms before it pastes:
 
 - **JSON** — pretty-print, minify.
+- **JWT** — decode (header + payload pretty-printed).
 - **Encoding** — Base64 encode / decode, URL encode / decode.
 - **Case** — UPPER, lower, Title, camelCase, snake_case, kebab-case.
 - **Strip** — ANSI escape codes, HTML tags.
