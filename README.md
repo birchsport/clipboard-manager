@@ -30,7 +30,8 @@ falls short (nonactivating panels, global hotkeys, focus capture).
   JSON, JSON ↔ YAML, decode JWT, Unix timestamp ↔ ISO 8601, SHA-256 / SHA-1 /
   MD5, number-base conversions (dec / hex / bin), query string ↔ JSON,
   Base64 / URL en-decode, case conversions (UPPER / lower / Title / camel /
-  snake / kebab), strip ANSI / HTML, extract URLs / emails. Fuzzy-search
+  snake / kebab), trim whitespace (whole-string, per-line trailing, or
+  per-line both ends), strip ANSI / HTML, extract URLs / emails. Fuzzy-search
   transforms by name, ⏎ applies and pastes.
 - ⌘S opens a **snippet picker** of user-authored canned text, managed in
   Settings → Snippets. Supports placeholders: `{clipboard}`, `{date[:FMT]}`,

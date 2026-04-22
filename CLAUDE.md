@@ -76,7 +76,7 @@ The panel is `.nonactivatingPanel` so its parent app never becomes frontmost —
 
 Three parallel registries, each roughly the same shape:
 
-- **`Transforms/`** — a `TextTransform` protocol (`id`, `displayName`, `isApplicable`, `apply`) and a hard-coded `TransformRegistry.all`. Built-ins in `BuiltInTransforms.swift` (JSON / YAML / JWT / timestamp / hashes / number-bases / query-string / Base64 / URL / case / strip / extract). Transforms always produce text that flows through the normal paste path.
+- **`Transforms/`** — a `TextTransform` protocol (`id`, `displayName`, `isApplicable`, `apply`) and a hard-coded `TransformRegistry.all`. Built-ins in `BuiltInTransforms.swift` (JSON / YAML / JWT / timestamp / hashes / number-bases / query-string / Base64 / URL / case / trim / strip / extract). Transforms always produce text that flows through the normal paste path. The three trim variants (`whitespace.trim`, `whitespace.rtrim_lines`, `whitespace.trim_lines`) share a private `LineTrim` helper enum in `BuiltInTransforms.swift` and all `isApplicable` only when applying would change the payload.
 - **`Snippets/`** — user-authored, persisted. `SnippetStore` is `@MainActor`-isolated, `@Published` snippets array serialized to `UserDefaults` as JSON under key `snippets.v1`. Placeholders (`{clipboard}`, `{date[:FMT]}`, `{uuid}`, etc.) expand via `SnippetPlaceholders.expand` on apply.
 - **`Actions/`** — an `EntryAction` protocol that takes an `ActionContext` exposing `paste(String)` and `dismiss()`. Actions may be pure side-effects (`Open in Browser` → `NSWorkspace.open`, no paste) or paste-producing (`Paste as rgb()`). Applicability is "pure match" — the entire trimmed payload must match the classifier (URL, email, hex color, phone).
 
