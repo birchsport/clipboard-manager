@@ -406,26 +406,88 @@ struct JSONYAMLTransform: TextTransform {
 
     func apply(to text: String) -> String? {
         if parsesAsJSON(text) {
-            // JSON → YAML
-            guard let data = text.data(using: .utf8),
-                  let obj = try? JSONSerialization.jsonObject(with: data, options: []) else {
-                return nil
-            }
-            // Yams can dump Any, but we round-trip through its native types to
-            // keep number/bool/null distinctions. JSONSerialization's output
-            // types map cleanly onto Yams.
-            return try? Yams.dump(object: obj)
+            return jsonToYAML(text)
         } else if parsesAsYAML(text) {
-            // YAML → JSON
-            guard let obj = try? Yams.load(yaml: text) else { return nil }
-            guard let data = try? JSONSerialization.data(
-                withJSONObject: obj as Any,
-                options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
-            ) else { return nil }
-            return String(data: data, encoding: .utf8)
+            return yamlToJSON(text)
         }
         return nil
     }
+
+    // MARK: - JSON → YAML
+
+    /// `JSONSerialization` returns Foundation types (NSDictionary,
+    /// NSArray, NSNumber, NSNull) that Yams's `Node(_: Any)` initializer
+    /// handles inconsistently — in particular, `NSNumber` wrapping a Bool
+    /// has the same objCType as an Int8, so a naive bridge can turn
+    /// `true` into `1`. We rewrite the tree into native Swift types
+    /// first, so Yams sees real `Bool` / `Int64` / `Double` / `String` /
+    /// `[String: Any]` / `[Any]` values.
+    private func jsonToYAML(_ text: String) -> String? {
+        guard let data = text.data(using: .utf8) else { return nil }
+        do {
+            let raw = try JSONSerialization.jsonObject(with: data, options: [])
+            let native = normalized(raw)
+            return try Yams.dump(
+                object: native,
+                allowUnicode: true,
+                sortKeys: true
+            )
+        } catch {
+            NSLog("Birchboard: JSON→YAML failed: \(error)")
+            return nil
+        }
+    }
+
+    /// Recursively convert Foundation-bridged JSON values to plain Swift
+    /// types so `Yams.Node(_: Any)` classifies them correctly.
+    private func normalized(_ value: Any) -> Any {
+        if let dict = value as? [String: Any] {
+            var out: [String: Any] = [:]
+            out.reserveCapacity(dict.count)
+            for (k, v) in dict { out[k] = normalized(v) }
+            return out
+        }
+        if let arr = value as? [Any] {
+            return arr.map { normalized($0) }
+        }
+        if let s = value as? String {
+            return s
+        }
+        if value is NSNull {
+            return NSNull()
+        }
+        if let n = value as? NSNumber {
+            // Bool and Int8 share an objCType on Apple platforms — the
+            // only reliable way to tell them apart is the class-ID of
+            // `CFBoolean`.
+            if CFGetTypeID(n) == CFBooleanGetTypeID() {
+                return n.boolValue
+            }
+            if CFNumberIsFloatType(n) {
+                return n.doubleValue
+            }
+            return n.int64Value
+        }
+        return value
+    }
+
+    // MARK: - YAML → JSON
+
+    private func yamlToJSON(_ text: String) -> String? {
+        do {
+            guard let obj = try Yams.load(yaml: text) else { return nil }
+            let json = try JSONSerialization.data(
+                withJSONObject: obj,
+                options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+            )
+            return String(data: json, encoding: .utf8)
+        } catch {
+            NSLog("Birchboard: YAML→JSON failed: \(error)")
+            return nil
+        }
+    }
+
+    // MARK: - Applicability
 
     private func parsesAsJSON(_ s: String) -> Bool {
         let trimmed = s.trimmingCharacters(in: .whitespacesAndNewlines)
