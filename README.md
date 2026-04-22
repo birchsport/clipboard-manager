@@ -20,9 +20,12 @@ falls short (nonactivating panels, global hotkeys, focus capture).
   (full-size images, larger monospaced text, file paths with icons). Arrow
   keys still navigate while the overlay is open.
 - **Code-aware panel**: each text entry is sniffed for its language (JSON,
-  YAML, XML, HTML, Swift, JS/TS, Python, Go, Rust, Ruby, SQL, Shell,
+  YAML, XML, HTML, Swift, Java, JS/TS, Python, Go, Rust, Ruby, SQL, Shell,
   Dockerfile, Markdown, CSS). Detected rows show a small language chip and
   the preview + Quick Look panes render with syntax highlighting.
+- Type-keyword search: typing `image` finds image entries, `file` finds
+  file-reference entries, and image dimensions (`400x300` / `400×300`) match
+  too — images and files aren't just "no text, unsearchable."
 - ⌘T opens a **transform picker** over the selected text entry — pretty/minify
   JSON, JSON ↔ YAML, decode JWT, Unix timestamp ↔ ISO 8601, SHA-256 / SHA-1 /
   MD5, number-base conversions (dec / hex / bin), query string ↔ JSON,

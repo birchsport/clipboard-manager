@@ -86,7 +86,7 @@ Adding a new transform, action, or snippet placeholder is a one-file change — 
 
 **`Detection/`** holds a pair of orthogonal helpers used by the panel:
 
-- **`LanguageDetector`** — heuristic regex-based sniffer returning a `DetectedLanguage?` (JSON / YAML / XML / HTML / Swift / JS / TS / Python / Go / Rust / Ruby / SQL / Shell / Dockerfile / Markdown / CSS). Runs on demand from views (no DB migration, no persisted field); a small thread-safe LRU cache keyed by entry id keeps re-lexing cheap during scroll.
+- **`LanguageDetector`** — heuristic regex-based sniffer returning a `DetectedLanguage?` (JSON / YAML / XML / HTML / Swift / Java / JS / TS / Python / Go / Rust / Ruby / SQL / Shell / Dockerfile / Markdown / CSS). Runs on demand from views (no DB migration, no persisted field); a small thread-safe LRU cache keyed by entry id keeps re-lexing cheap during scroll. Detection order matters — shared-keyword languages (Java / Python / JS) are ordered by specificity so Java's high-confidence signals (`public class`, `System.out.println`, `package com.foo;`) beat Python's, which now rejects bare `class Foo` / `import X` and requires either a Python-specific high-confidence signal or ≥2 medium ones.
 - **`CodeHighlighter`** — takes `(text, language)` → `AttributedString`. Swift goes through **Splash** (`SyntaxHighlighter<AttributedStringOutputFormat>`); every other language uses a generic regex-rule runner (`Rule` with a pattern and a `SwiftUI.Color`), applied in order. Splash's `Color` and `SyntaxHighlighter` types collide with SwiftUI and with one of our own types — hence `CodeHighlighter.Palette` uses fully-qualified `SwiftUI.Color(...)` and the wrapper is `CodeHighlighter` not `SyntaxHighlighter`. `CodeHighlighter.styledText(_:entryID:)` is the one-call helper for rendering a preview-ready `Text`.
 
 Adding a language = extend the `DetectedLanguage` enum + add a `looksLike…` case + add a rule set. Two matching additions, ~20 LOC.
@@ -100,6 +100,8 @@ Adding a language = extend the `DetectedLanguage` enum + add a `looksLike…` ca
 - `HistoryArchive` — Codable JSON export/import, images inlined as base64. Dedup on import is by `dedup_hash`.
 
 `EntryKind` is an enum with four cases (`text / rtf / image / fileURLs`). Its `tag: Int`, `plainText: String`, `dedupHash: String`, and `withReplacedText(_:) -> EntryKind` together are the "protocol surface" every other module treats as the clipboard payload abstraction.
+
+`ClipEntry.searchText` is a separate computed property from `plainText`. For text/RTF entries it returns the payload verbatim; for images it appends `"image WxH W×H"` tokens so typing "image" or the dimensions matches; for file URLs it prepends `"file"` / `"files"` plus the basenames. This is what the fuzzy matcher operates on — **do not replace `plainText` calls with `searchText` for anything that needs the literal payload** (hashing, previewing, the transform/action pickers).
 
 ### Clipboard ingestion
 
