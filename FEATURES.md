@@ -49,11 +49,12 @@ System requirements: macOS 14 (Sonoma) or newer. Apple Silicon or Intel.
 - **⌘Y Quick Look overlay**: full-panel preview of the selected entry.
   Full-size images, larger monospaced text, file paths with icons. Arrow
   keys still navigate entries while the overlay is open.
-- **Structured tree view**: Quick Look on a JSON or YAML entry renders the
-  payload as a collapsible tree — keys, typed values (strings, numbers,
-  bools, null), and array indices coloured consistently with the in-line
-  highlighter. Click any `{ … keys }` / `[ … items ]` row to expand or
-  collapse.
+- **Structured tree view**: Quick Look on a JSON, YAML, or XML entry
+  renders the payload as a collapsible tree — keys, typed values (strings,
+  numbers, bools, null), array indices, XML elements (`<tag>`), XML
+  attributes (`@attr`), and text nodes (`#text`) all coloured
+  consistently with the in-line highlighter. Click any `{ … keys }` /
+  `[ … items ]` / `<tag>` row to expand or collapse.
 
 ## ⌘T — Transform picker
 

@@ -56,6 +56,62 @@ enum StructuredTreeBuilder {
         return node(from: obj, label: nil)
     }
 
+    static func fromXML(_ text: String) -> TreeNode? {
+        guard let data = text.data(using: .utf8) else { return nil }
+        // `XMLDocument` is macOS-only but so are we. Options are default —
+        // strict parse; if the payload isn't well-formed we fall through to
+        // the flat highlighted preview.
+        guard let doc = try? XMLDocument(data: data, options: []),
+              let root = doc.rootElement() else {
+            return nil
+        }
+        return xmlNode(from: root)
+    }
+
+    // MARK: - XML element → TreeNode
+
+    /// Each element maps to either a leaf (if it has no attributes and no
+    /// child elements — just text) or a branch whose children are, in
+    /// order: `@attributes`, nested elements, and a `#text` leaf when the
+    /// element mixes text with structured children.
+    private static func xmlNode(from element: XMLElement) -> TreeNode {
+        let label = "<\(element.name ?? "element")>"
+        let attrs = element.attributes ?? []
+
+        var childElements: [XMLElement] = []
+        var accumulatedText = ""
+        for childNode in element.children ?? [] {
+            if let elem = childNode as? XMLElement {
+                childElements.append(elem)
+            } else if childNode.kind == .text {
+                accumulatedText += childNode.stringValue ?? ""
+            }
+            // Comments / CDATA / processing instructions skipped in v1.
+        }
+        let trimmedText = accumulatedText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Leaf shortcut: simple `<foo>bar</foo>` or `<foo></foo>` with no
+        // attributes reads cleanly as `<foo>: "bar"`.
+        if attrs.isEmpty && childElements.isEmpty {
+            return .leaf(id: UUID(), label: label, value: .string(trimmedText))
+        }
+
+        var children: [TreeNode] = []
+        for attr in attrs {
+            let attrLabel = "@\(attr.name ?? "")"
+            let attrValue = attr.stringValue ?? ""
+            children.append(.leaf(id: UUID(), label: attrLabel, value: .string(attrValue)))
+        }
+        for elem in childElements {
+            children.append(xmlNode(from: elem))
+        }
+        if !trimmedText.isEmpty {
+            children.append(.leaf(id: UUID(), label: "#text", value: .string(trimmedText)))
+        }
+
+        return .branch(id: UUID(), label: label, kind: .object, children: children)
+    }
+
     // MARK: - Any → TreeNode
 
     /// Walks a Foundation/JSON/YAML value tree and emits `TreeNode`s.

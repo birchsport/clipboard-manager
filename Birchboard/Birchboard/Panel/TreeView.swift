@@ -119,15 +119,31 @@ private struct NodeView: View {
 
     // MARK: - Helpers
 
-    /// Keys from objects are rendered as `"foo":` (quoted, blue). Array
-    /// indices are rendered as `[0]` (unquoted, tertiary) so they read
-    /// visually differently.
+    /// How a node's label is rendered depends on a leading sigil:
+    /// - `[0]`  — JSON/YAML array index (tertiary, no quotes)
+    /// - `<tag>` — XML element name (type colour, no quotes)
+    /// - `@attr` — XML attribute name (key colour, no quotes)
+    /// - `#text` — XML text node marker (tertiary italic)
+    /// - anything else — JSON/YAML object key (quoted, key colour)
     @ViewBuilder
     private func labelText(_ label: String) -> some View {
         if label.hasPrefix("[") && label.hasSuffix("]") {
             Text(label)
                 .font(.system(size: 12, design: .monospaced))
                 .foregroundStyle(.tertiary)
+        } else if label.hasPrefix("<") && label.hasSuffix(">") {
+            Text(label)
+                .font(.system(size: 12, design: .monospaced))
+                .foregroundStyle(CodeHighlighter.Palette.type)
+        } else if label.hasPrefix("@") {
+            Text(label)
+                .font(.system(size: 12, design: .monospaced))
+                .foregroundStyle(CodeHighlighter.Palette.key)
+        } else if label == "#text" {
+            Text(label)
+                .font(.system(size: 12, design: .monospaced))
+                .foregroundStyle(.tertiary)
+                .italic()
         } else {
             Text("\"\(label)\"")
                 .font(.system(size: 12, design: .monospaced))

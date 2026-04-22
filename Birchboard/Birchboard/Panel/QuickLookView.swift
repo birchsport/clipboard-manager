@@ -118,13 +118,14 @@ struct QuickLookView: View {
         }
     }
 
-    /// Return a parsed tree for JSON / YAML payloads; nil otherwise. We
-    /// lean on `LanguageDetector` to pick the format so the heuristics
+    /// Return a parsed tree for JSON / YAML / XML payloads; nil otherwise.
+    /// We lean on `LanguageDetector` to pick the format so the heuristics
     /// stay in one place.
     private func structuredTree(for text: String, entryID: Int64) -> TreeNode? {
         switch LanguageDetector.detect(text, cacheKey: "ql-\(entryID)") {
         case .json: return StructuredTreeBuilder.fromJSON(text)
         case .yaml: return StructuredTreeBuilder.fromYAML(text)
+        case .xml:  return StructuredTreeBuilder.fromXML(text)
         default:    return nil
         }
     }

@@ -18,8 +18,8 @@ falls short (nonactivating panels, global hotkeys, focus capture).
   with the digit pastes as plain text.
 - ⌘Y toggles a full-panel **Quick Look** preview of the selected entry
   (full-size images, larger monospaced text, file paths with icons, or —
-  for JSON / YAML — a collapsible tree view with typed colouring). Arrow
-  keys still navigate while the overlay is open.
+  for JSON / YAML / XML — a collapsible tree view with typed colouring).
+  Arrow keys still navigate while the overlay is open.
 - **Code-aware panel**: each text entry is sniffed for its language (JSON,
   YAML, XML, HTML, Swift, Java, JS/TS, Python, Go, Rust, Ruby, SQL, Shell,
   Dockerfile, Markdown, CSS). Detected rows show a small language chip and
