@@ -282,6 +282,23 @@ private func tokens(from text: String) -> [String] {
     return out.filter { !$0.isEmpty }
 }
 
+// MARK: - Whitespace
+
+struct TrimWhitespaceTransform: TextTransform {
+    let id = "whitespace.trim"
+    let displayName = "Trim whitespace"
+
+    func isApplicable(to text: String) -> Bool {
+        // Only show when there's actually something to trim — otherwise the
+        // transform would be a visible no-op.
+        text != text.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func apply(to text: String) -> String? {
+        text.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}
+
 // MARK: - Stripping
 
 struct StripANSITransform: TextTransform {
