@@ -13,11 +13,12 @@ struct PanelContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Search bar.
+            // Search bar. Icon + placeholder + binding all swap on mode so the user
+            // sees immediately what they're filtering.
             HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
+                Image(systemName: isTransformMode ? "wand.and.stars" : "magnifyingglass")
                     .foregroundStyle(.secondary)
-                TextField("Search clipboard…", text: $viewModel.query)
+                TextField(searchPlaceholder, text: searchTextBinding)
                     .textFieldStyle(.plain)
                     .focused($searchFocused)
                     .font(.system(size: 14))
@@ -27,12 +28,23 @@ struct PanelContentView: View {
 
             Divider()
 
-            // Split: list + preview.
+            // Split: list/picker on the left, preview on the right.
             HStack(spacing: 0) {
-                EntryListView(viewModel: viewModel)
-                    .frame(width: 320)
+                Group {
+                    if isTransformMode {
+                        TransformPickerView(viewModel: viewModel)
+                    } else {
+                        EntryListView(viewModel: viewModel)
+                    }
+                }
+                .frame(width: 320)
+
                 Divider()
-                EntryPreviewView(entry: viewModel.selectedEntry)
+
+                // The preview always shows the currently-selected browse entry. In
+                // transform mode that's the source we'll transform, which is
+                // useful context while the user picks.
+                EntryPreviewView(entry: previewEntry)
                     .frame(maxWidth: .infinity)
             }
         }
@@ -46,6 +58,43 @@ struct PanelContentView: View {
         .onChange(of: viewModel.focusRequestTick) { _, _ in
             DispatchQueue.main.async { searchFocused = true }
         }
+    }
+
+    // MARK: - Mode-derived bindings
+
+    private var isTransformMode: Bool {
+        if case .transformPicker = viewModel.mode { return true }
+        return false
+    }
+
+    private var searchPlaceholder: String {
+        isTransformMode ? "Filter transforms…" : "Search clipboard…"
+    }
+
+    /// Route the single TextField to either browse query or transform query
+    /// depending on mode.
+    private var searchTextBinding: Binding<String> {
+        Binding(
+            get: {
+                isTransformMode ? viewModel.transformQuery : viewModel.query
+            },
+            set: { newValue in
+                if isTransformMode {
+                    viewModel.transformQuery = newValue
+                } else {
+                    viewModel.query = newValue
+                }
+            }
+        )
+    }
+
+    /// In transform mode, show the source entry in the preview so the user can
+    /// see what they're transforming.
+    private var previewEntry: ClipEntry? {
+        if case .transformPicker(let source, _) = viewModel.mode {
+            return source
+        }
+        return viewModel.selectedEntry
     }
 }
 

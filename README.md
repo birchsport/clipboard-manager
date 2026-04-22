@@ -14,6 +14,10 @@ falls short (nonactivating panels, global hotkeys, focus capture).
 - fzf-style fuzzy search with word-boundary, consecutive-match, and camelCase bonuses.
 - ⏎ pastes with original formatting; ⇧⏎ pastes as plain text; ⌘P pins;
   ⌘⌫ deletes; Esc dismisses.
+- ⌘T opens a **transform picker** over the selected text entry — pretty/minify
+  JSON, Base64 / URL en-decode, case conversions (UPPER / lower / Title /
+  camel / snake / kebab), strip ANSI / HTML, extract URLs / emails. Fuzzy-
+  search transforms by name, ⏎ applies and pastes.
 - SQLite-backed persistence (GRDB), with image blobs on disk addressed by SHA-256.
 - Configurable retention (max count, max age) with automatic hourly sweeps.
 - Respects the `nspasteboard.org` concealed/transient convention — password

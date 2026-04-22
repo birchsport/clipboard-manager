@@ -48,4 +48,20 @@ enum EntryKind: Equatable {
     static func sha256(of data: Data) -> String {
         ImageHash.sha256Hex(of: data)
     }
+
+    /// Returns a new kind whose text payload is `newText`. Used by the transform
+    /// picker to produce a one-shot paste. RTF source is flattened to plain text
+    /// because replacing an RTF body with transformed plain text cannot round-trip
+    /// the original styling sensibly. Non-text kinds (image, fileURLs) are returned
+    /// unchanged — the picker never offers transforms for them.
+    func withReplacedText(_ newText: String) -> EntryKind {
+        switch self {
+        case .text:
+            return .text(newText)
+        case .rtf:
+            return .text(newText)
+        case .image, .fileURLs:
+            return self
+        }
+    }
 }
