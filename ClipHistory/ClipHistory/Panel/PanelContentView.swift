@@ -50,6 +50,13 @@ struct PanelContentView: View {
         }
         .background(.thickMaterial)
         .frame(minWidth: 560, minHeight: 360)
+        .overlay {
+            if viewModel.isQuickLookOpen {
+                QuickLookView(entry: viewModel.selectedEntry)
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeOut(duration: 0.1), value: viewModel.isQuickLookOpen)
         .onAppear {
             // Next runloop — otherwise SwiftUI hasn't finished attaching the field
             // and the @FocusState write is dropped.

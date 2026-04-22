@@ -14,6 +14,11 @@ falls short (nonactivating panels, global hotkeys, focus capture).
 - fzf-style fuzzy search with word-boundary, consecutive-match, and camelCase bonuses.
 - ⏎ pastes with original formatting; ⇧⏎ pastes as plain text; ⌘P pins;
   ⌘⌫ deletes; Esc dismisses.
+- ⌘1–⌘9 quick-pastes the Nth visible entry without arrow-keying. ⇧ combined
+  with the digit pastes as plain text.
+- ⌘Y toggles a full-panel **Quick Look** preview of the selected entry
+  (full-size images, larger monospaced text, file paths with icons). Arrow
+  keys still navigate while the overlay is open.
 - ⌘T opens a **transform picker** over the selected text entry — pretty/minify
   JSON, Base64 / URL en-decode, case conversions (UPPER / lower / Title /
   camel / snake / kebab), strip ANSI / HTML, extract URLs / emails. Fuzzy-

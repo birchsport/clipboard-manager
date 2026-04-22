@@ -37,6 +37,13 @@ final class PanelViewModel: ObservableObject {
     /// automatically after a short delay or on mode change.
     @Published var transformError: String?
 
+    // MARK: - Quick Look
+
+    /// Overlay showing a full-size preview of the currently-selected entry.
+    /// Toggled with ⌘Y; tracks the selection so Up/Down still navigates while
+    /// the overlay is visible.
+    @Published var isQuickLookOpen: Bool = false
+
     let actions: PanelActions
     private let services: Services
     private var allEntries: [ClipEntry] = []
@@ -78,7 +85,12 @@ final class PanelViewModel: ObservableObject {
         selectedIndex = 0
         mode = .browse
         transformError = nil
+        isQuickLookOpen = false
         focusRequestTick &+= 1
+    }
+
+    func toggleQuickLook() {
+        isQuickLookOpen.toggle()
     }
 
     var selectedEntry: ClipEntry? {
@@ -228,9 +240,23 @@ final class PanelViewModel: ObservableObject {
         let cmd = flags.contains(.command)
         let shift = flags.contains(.shift)
 
+        // ⌘1–⌘9: paste the Nth visible entry. ⇧⌘N pastes plain text.
+        // Keycode-based so Shift's character-remap (1→!, etc.) doesn't break it.
+        if cmd, let digit = Self.digitForTopRowKeyCode[event.keyCode] {
+            let idx = digit - 1
+            if entries.indices.contains(idx) {
+                actions.paste(entries[idx], asPlainText: shift)
+            }
+            return true
+        }
+
         switch event.keyCode {
         case 53: // Esc
-            actions.dismiss()
+            if isQuickLookOpen {
+                isQuickLookOpen = false
+            } else {
+                actions.dismiss()
+            }
             return true
         case 125: // Down
             moveSelection(+1); return true
@@ -241,6 +267,12 @@ final class PanelViewModel: ObservableObject {
                 actions.paste(entry, asPlainText: shift)
             }
             return true
+        case 16: // Y — ⌘Y toggles Quick Look
+            if cmd {
+                toggleQuickLook()
+                return true
+            }
+            return false
         case 17: // T — ⌘T enters transform mode
             if cmd {
                 enterTransformMode()
@@ -293,4 +325,10 @@ final class PanelViewModel: ObservableObject {
         transformSelectedIndex = max(0, min(transformMatches.count - 1,
                                             transformSelectedIndex + delta))
     }
+
+    /// Physical top-row number keycodes (stable across US/AZERTY/DVORAK) →
+    /// their visual digit. Used by ⌘N quick-select.
+    private static let digitForTopRowKeyCode: [UInt16: Int] = [
+        18: 1, 19: 2, 20: 3, 21: 4, 23: 5, 22: 6, 26: 7, 28: 8, 25: 9,
+    ]
 }
