@@ -4,11 +4,12 @@ import AppKit
 /// App entry point. The app is a background agent (LSUIElement) with a menu-bar
 /// item and a floating panel.
 ///
-/// Note on opening Settings: `SettingsLink` *should* be the idiomatic way but
-/// it's unreliable inside `MenuBarExtra` for LSUIElement apps — the window
-/// either doesn't appear or opens behind other apps. Every menu-bar clipboard
-/// manager I've looked at (Maccy, Rectangle, etc.) uses the manual
-/// `NSApp.activate` + `showSettingsWindow:` pair instead, so we do too.
+/// Opening Settings from a MenuBarExtra on macOS 14+ requires `SettingsLink` —
+/// sending `showSettingsWindow:` manually is blocked with a "Please use
+/// SettingsLink" runtime log. Since LSUIElement apps aren't active by default,
+/// the Settings window can open *behind* other apps, making it look like
+/// nothing happened. The `.simultaneousGesture` here forces `NSApp.activate`
+/// at tap time so the window comes forward.
 @main
 struct BirchboardApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
@@ -19,9 +20,12 @@ struct BirchboardApp: App {
                 appDelegate.togglePanel()
             }
             Divider()
-            Button("Settings…") {
-                openSettings()
+            SettingsLink {
+                Text("Settings…")
             }
+            .simultaneousGesture(TapGesture().onEnded {
+                NSApp.activate(ignoringOtherApps: true)
+            })
             .keyboardShortcut(",")
             Divider()
             Button("Quit Birchboard") {
@@ -38,13 +42,5 @@ struct BirchboardApp: App {
                 .environmentObject(appDelegate.services.preferences)
                 .environmentObject(appDelegate.services.snippetStore)
         }
-    }
-
-    /// Bring the app forward (LSUIElement apps aren't active by default) and
-    /// tell AppKit to show the Settings scene. Using the selector form is
-    /// required — `showSettingsWindow:` isn't exposed as a Swift-visible API.
-    private func openSettings() {
-        NSApp.activate(ignoringOtherApps: true)
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
     }
 }
