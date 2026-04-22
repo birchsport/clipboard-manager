@@ -124,7 +124,7 @@ final class EntryRepository {
             pruneBlobs()
             subject.send()
         } catch {
-            NSLog("ClipHistory: retention sweep failed: \(error)")
+            NSLog("Birchboard: retention sweep failed: \(error)")
         }
     }
 

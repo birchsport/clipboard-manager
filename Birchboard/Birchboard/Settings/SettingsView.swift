@@ -218,7 +218,7 @@ private struct IgnoredAppsSection: View {
 
         guard panel.runModal() == .OK, let url = panel.url else { return }
         guard let bundleID = Bundle(url: url)?.bundleIdentifier else {
-            NSLog("ClipHistory: couldn't read bundle ID from \(url.path)")
+            NSLog("Birchboard: couldn't read bundle ID from \(url.path)")
             return
         }
         if !preferences.ignoredAppBundleIDs.contains(bundleID) {

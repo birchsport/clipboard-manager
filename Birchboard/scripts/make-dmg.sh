@@ -8,7 +8,7 @@
 #       No notarization — fine for use on your own Mac, will be blocked by
 #       Gatekeeper on other Macs.
 #
-#   NOTARY_PROFILE=notarytool-clip ./scripts/make-dmg.sh
+#   NOTARY_PROFILE=notarytool-birchboard ./scripts/make-dmg.sh
 #       Same, but after building, codesign the DMG, submit it to Apple's
 #       notary service, wait for approval, and staple the ticket so it
 #       validates offline. The resulting DMG is safe to send to other Macs.
@@ -19,7 +19,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-APP_NAME="ClipHistory"
+APP_NAME="Birchboard"
 CONFIGURATION="Release"
 ARCHIVE_PATH="build/${APP_NAME}.xcarchive"
 DMG_STAGING="build/dmg-staging"

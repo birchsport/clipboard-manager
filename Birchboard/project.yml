@@ -1,6 +1,6 @@
-name: ClipHistory
+name: Birchboard
 options:
-  bundleIdPrefix: dev.birch.cliphistory
+  bundleIdPrefix: dev.birch
   deploymentTarget:
     macOS: "14.0"
   developmentLanguage: en
@@ -29,20 +29,20 @@ packages:
     from: "6.0.0"
 
 targets:
-  ClipHistory:
+  Birchboard:
     type: application
     platform: macOS
     sources:
-      - path: ClipHistory
+      - path: Birchboard
         excludes:
           - "Info.plist"
-          - "ClipHistory.entitlements"
+          - "Birchboard.entitlements"
     info:
-      path: ClipHistory/Info.plist
+      path: Birchboard/Info.plist
       properties:
         LSUIElement: true
-        CFBundleName: ClipHistory
-        CFBundleDisplayName: ClipHistory
+        CFBundleName: Birchboard
+        CFBundleDisplayName: Birchboard
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CFBundleIdentifier: "$(PRODUCT_BUNDLE_IDENTIFIER)"
@@ -51,18 +51,18 @@ targets:
         LSApplicationCategoryType: public.app-category.productivity
         LSMinimumSystemVersion: "$(MACOSX_DEPLOYMENT_TARGET)"
         NSHumanReadableCopyright: ""
-        NSAppleEventsUsageDescription: "ClipHistory sends ⌘V to the previously focused app after you pick an entry from the panel."
+        NSAppleEventsUsageDescription: "Birchboard sends ⌘V to the previously focused app after you pick an entry from the panel."
         NSPrincipalClass: NSApplication
     entitlements:
-      path: ClipHistory/ClipHistory.entitlements
+      path: Birchboard/Birchboard.entitlements
       properties:
         com.apple.security.app-sandbox: false
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: dev.birch.cliphistory.ClipHistory
-        PRODUCT_NAME: ClipHistory
+        PRODUCT_BUNDLE_IDENTIFIER: dev.birch.Birchboard
+        PRODUCT_NAME: Birchboard
         GENERATE_INFOPLIST_FILE: NO
-        CODE_SIGN_ENTITLEMENTS: ClipHistory/ClipHistory.entitlements
+        CODE_SIGN_ENTITLEMENTS: Birchboard/Birchboard.entitlements
         COMBINE_HIDPI_IMAGES: YES
         ENABLE_USER_SCRIPT_SANDBOXING: NO
       configs:

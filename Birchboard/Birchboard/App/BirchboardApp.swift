@@ -4,7 +4,7 @@ import SwiftUI
 /// and a floating panel. We use `MenuBarExtra` so `SettingsLink` — the only reliable
 /// way to open the `Settings` scene on macOS 14+ — is available from the menu.
 @main
-struct ClipHistoryApp: App {
+struct BirchboardApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {
@@ -18,7 +18,7 @@ struct ClipHistoryApp: App {
             }
             .keyboardShortcut(",")
             Divider()
-            Button("Quit ClipHistory") {
+            Button("Quit Birchboard") {
                 NSApplication.shared.terminate(nil)
             }
             .keyboardShortcut("q")

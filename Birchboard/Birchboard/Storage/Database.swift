@@ -7,7 +7,7 @@ final class Database {
 
     init(url: URL) throws {
         var config = Configuration()
-        config.label = "ClipHistory.db"
+        config.label = "Birchboard.db"
         self.pool = try DatabasePool(path: url.path, configuration: config)
         try migrator.migrate(pool)
     }

@@ -27,11 +27,11 @@ enum AccessibilityPermission {
         let alert = NSAlert()
         alert.messageText = "Accessibility access needed"
         alert.informativeText = """
-            ClipHistory needs Accessibility access to paste into the previously focused app.
+            Birchboard needs Accessibility access to paste into the previously focused app.
 
-            Open System Settings → Privacy & Security → Accessibility, and enable ClipHistory.
+            Open System Settings → Privacy & Security → Accessibility, and enable Birchboard.
 
-            If ClipHistory is already in the list, toggle it off and back on — ad-hoc-signed dev builds can drift out of sync with macOS's permissions database between rebuilds.
+            If Birchboard is already in the list, toggle it off and back on — ad-hoc-signed dev builds can drift out of sync with macOS's permissions database between rebuilds.
             """
         alert.addButton(withTitle: "Open System Settings")
         alert.addButton(withTitle: "Cancel")

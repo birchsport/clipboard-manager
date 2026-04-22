@@ -29,7 +29,7 @@ struct ClipboardReader {
                                   height: rep.pixelsHigh,
                                   hash: hash)
                 } catch {
-                    NSLog("ClipHistory: failed to persist image blob: \(error)")
+                    NSLog("Birchboard: failed to persist image blob: \(error)")
                     // Fall through to text if image storage fails.
                 }
             }

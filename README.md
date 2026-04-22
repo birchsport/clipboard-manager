@@ -1,4 +1,4 @@
-# ClipHistory
+# Birchboard
 
 A native macOS clipboard history manager — a personal toy project inspired by the
 clipboard panels in Alfred and Raycast. Swift + SwiftUI with AppKit where SwiftUI
@@ -56,11 +56,11 @@ Requirements:
   which makes TCC (Accessibility, etc.) drift out of sync.
 
 ```bash
-cd ClipHistory
+cd Birchboard
 # Put your Team ID into the signing config (first time only).
 $EDITOR Config/Signing.xcconfig                 # fill DEVELOPMENT_TEAM = ABCD123456
 xcodegen generate
-open ClipHistory.xcodeproj
+open Birchboard.xcodeproj
 ```
 
 Your Team ID is the 10-character string shown at Xcode → Settings → Accounts,
@@ -76,9 +76,9 @@ Hit ⌘R in Xcode. Swift Package Manager will resolve the two dependencies
 Building from the command line:
 
 ```bash
-cd ClipHistory
+cd Birchboard
 xcodegen generate
-xcodebuild -project ClipHistory.xcodeproj -scheme ClipHistory \
+xcodebuild -project Birchboard.xcodeproj -scheme Birchboard \
            -configuration Debug -destination 'platform=macOS' build
 ```
 
@@ -89,7 +89,7 @@ macOS's TCC database still has the old binary hash on file. After your first
 properly-signed build:
 
 1. Open System Settings → Privacy & Security → Accessibility.
-2. Remove any existing ClipHistory entry (minus button).
+2. Remove any existing Birchboard entry (minus button).
 3. Run the new build and trigger a paste; macOS will re-add it.
 4. Toggle it on.
 
@@ -102,7 +102,7 @@ See [`RELEASE.md`](RELEASE.md) for the full notarized-DMG workflow.
 Short version:
 
 ```sh
-NOTARY_PROFILE=notarytool-clip ./scripts/make-dmg.sh
+NOTARY_PROFILE=notarytool-birchboard ./scripts/make-dmg.sh
 ```
 
 (requires one-time setup of a Developer ID Application certificate and
@@ -121,18 +121,18 @@ none of which play nicely with the App Sandbox for a personal tool.
 
 ## Data location
 
-- Database: `~/Library/Application Support/ClipHistory/history.sqlite`
-- Image blobs: `~/Library/Application Support/ClipHistory/blobs/<sha256>.png`
+- Database: `~/Library/Application Support/Birchboard/history.sqlite`
+- Image blobs: `~/Library/Application Support/Birchboard/blobs/<sha256>.png`
 
 Delete both to fully reset the app.
 
 ## Layout
 
 ```
-ClipHistory/
+Birchboard/
 ├── project.yml                         # xcodegen spec
-├── ClipHistory.xcodeproj               # generated
-└── ClipHistory/
+├── Birchboard.xcodeproj               # generated
+└── Birchboard/
     ├── App/                            # @main, AppDelegate, status bar
     ├── Panel/                          # NSPanel shell + SwiftUI content
     ├── Clipboard/                      # watcher / reader / writer / filter
@@ -142,7 +142,7 @@ ClipHistory/
     ├── Settings/                       # SwiftUI settings window + Preferences
     ├── Util/                           # AX permission, SHA-256, hotkey names
     ├── Info.plist                      # generated (LSUIElement=true)
-    └── ClipHistory.entitlements        # generated (sandbox off)
+    └── Birchboard.entitlements        # generated (sandbox off)
 ```
 
 ## Not in v1

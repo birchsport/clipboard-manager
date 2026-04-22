@@ -5,8 +5,8 @@
 //   2. Fill in DEVELOPMENT_TEAM with your 10-character Apple Developer Team ID
 //      (Xcode → Settings → Accounts → select account → the "Team ID" column, or
 //      developer.apple.com/account → Membership).
-//   3. Run `xcodegen generate` from the ClipHistory directory.
-//   4. Open ClipHistory.xcodeproj and build.
+//   3. Run `xcodegen generate` from the Birchboard directory.
+//   4. Open Birchboard.xcodeproj and build.
 //
 // Signing.xcconfig is gitignored — this `.example` file is what's committed.
 //

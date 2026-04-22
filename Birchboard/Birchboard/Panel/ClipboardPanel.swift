@@ -1,7 +1,7 @@
 import AppKit
 
 /// A borderless, nonactivating, floating panel. Nonactivating is critical: we don't
-/// want ClipHistory to become the frontmost app when the panel opens, because we need
+/// want Birchboard to become the frontmost app when the panel opens, because we need
 /// to paste into whatever the user had open. `canBecomeKey` is still true so the
 /// search field can receive typing.
 final class ClipboardPanel: NSPanel {

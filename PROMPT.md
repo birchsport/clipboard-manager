@@ -35,11 +35,11 @@ Build a native macOS clipboard history manager (Swift/SwiftUI) similar to the cl
 ## Project layout
 
 ```
-ClipHistory/
-├── ClipHistory.xcodeproj
-├── ClipHistory/
+Birchboard/
+├── Birchboard.xcodeproj
+├── Birchboard/
 │   ├── App/
-│   │   ├── ClipHistoryApp.swift          # @main, AppDelegate adapter
+│   │   ├── BirchboardApp.swift          # @main, AppDelegate adapter
 │   │   ├── AppDelegate.swift             # status bar, panel lifecycle, permissions
 │   │   └── Info.plist                    # LSUIElement=true, usage strings
 │   ├── Panel/
@@ -76,7 +76,7 @@ ClipHistory/
 
 ### App shell & status bar
 
-- `@main struct ClipHistoryApp: App` with `@NSApplicationDelegateAdaptor`.
+- `@main struct BirchboardApp: App` with `@NSApplicationDelegateAdaptor`.
 - The `App` body should use `Settings { SettingsView() }` for the settings scene only — no main `WindowGroup`.
 - `Info.plist`: `LSUIElement = true`, `NSAppleEventsUsageDescription`, app category `public.app-category.productivity`.
 - `AppDelegate.applicationDidFinishLaunching`:
@@ -168,7 +168,7 @@ struct ClipEntry: Identifiable {
 ### Storage
 
 - GRDB with one `entries` table and one `pinned_at` column (nil when unpinned, timestamp when pinned).
-- Blob files in `~/Library/Application Support/ClipHistory/blobs/<hash>.png`.
+- Blob files in `~/Library/Application Support/Birchboard/blobs/<hash>.png`.
 - Image dedup: SHA-256 the bytes; if a row with that hash exists, bump its `createdAt` rather than insert a new row.
 - Text dedup: same idea on a hash of the trimmed string.
 - Retention policy (configurable): max N entries (default 500) OR max age (default 30 days). Pinned entries never expire. Run a sweep on app launch and once an hour.

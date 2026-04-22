@@ -64,7 +64,7 @@ final class SnippetStore: ObservableObject {
         do {
             snippets = try decoder.decode([Snippet].self, from: data)
         } catch {
-            NSLog("ClipHistory: failed to decode snippets: \(error)")
+            NSLog("Birchboard: failed to decode snippets: \(error)")
         }
     }
 
@@ -73,7 +73,7 @@ final class SnippetStore: ObservableObject {
             let data = try encoder.encode(snippets)
             defaults.set(data, forKey: key)
         } catch {
-            NSLog("ClipHistory: failed to encode snippets: \(error)")
+            NSLog("Birchboard: failed to encode snippets: \(error)")
         }
     }
 }

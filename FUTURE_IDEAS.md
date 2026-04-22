@@ -1,6 +1,6 @@
 # Future Ideas
 
-Candidate features that would differentiate ClipHistory from Alfred / Raycast /
+Candidate features that would differentiate Birchboard from Alfred / Raycast /
 Maccy. Not a commitment — a shortlist to pull from when the itch strikes.
 
 Ordered loosely by effort-to-impact ratio (highest first).
@@ -120,7 +120,7 @@ when it's in the exclusion set.
 ## One-of-a-kind
 
 ### Local-network sync between your own Macs (Bonjour)
-Discover other ClipHistory instances on the LAN via `NWBrowser`, pair with a
+Discover other Birchboard instances on the LAN via `NWBrowser`, pair with a
 QR-code-verified secret, and optionally mirror the clipboard. No cloud, no
 accounts.
 

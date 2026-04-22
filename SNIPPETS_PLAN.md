@@ -5,7 +5,7 @@
 Snippets are user-authored canned text you can paste without having first
 copied it. Alfred and Raycast both treat snippets as a first-class feature —
 one of the top reasons people pay for a launcher-ish tool. Adding them to
-ClipHistory turns it from "history only" into "history + vocabulary".
+Birchboard turns it from "history only" into "history + vocabulary".
 
 This plan scopes a v1 that's genuinely useful without ballooning into
 auto-expansion territory (which requires watching global keystrokes via
@@ -47,7 +47,7 @@ Intended outcome:
 
 ### New module: `Snippets/`
 
-`ClipHistory/ClipHistory/Snippets/Snippet.swift`
+`Birchboard/Birchboard/Snippets/Snippet.swift`
 ```swift
 struct Snippet: Identifiable, Codable, Equatable {
     let id: UUID
@@ -60,7 +60,7 @@ struct Snippet: Identifiable, Codable, Equatable {
 A plain value type. The `id` is stable across edits so the picker can keep a
 selection as the user edits in Settings.
 
-`ClipHistory/ClipHistory/Snippets/SnippetStore.swift`
+`Birchboard/Birchboard/Snippets/SnippetStore.swift`
 ```swift
 @MainActor
 final class SnippetStore: ObservableObject {
@@ -84,7 +84,7 @@ final class SnippetStore: ObservableObject {
 ```
 Single source of truth. Lives on `Services` (next to `preferences`).
 
-`ClipHistory/ClipHistory/Snippets/SnippetPlaceholders.swift`
+`Birchboard/Birchboard/Snippets/SnippetPlaceholders.swift`
 ```swift
 enum SnippetPlaceholders {
     /// Expand `{clipboard}`, `{date[:FMT]}`, `{time[:FMT]}`, `{uuid}`,

@@ -3,7 +3,7 @@ import SwiftUI
 import KeyboardShortcuts
 
 /// Owns the panel controller, the clipboard watcher, and the shared service
-/// container. The status-bar UI lives in `ClipHistoryApp` as a `MenuBarExtra` so we
+/// container. The status-bar UI lives in `BirchboardApp` as a `MenuBarExtra` so we
 /// can use `SettingsLink` to open the settings scene reliably on macOS 14+.
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -18,7 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         do {
             try services.bootstrap()
         } catch {
-            NSLog("ClipHistory: failed to bootstrap services: \(error)")
+            NSLog("Birchboard: failed to bootstrap services: \(error)")
         }
 
         // 2. Panel.
@@ -69,7 +69,7 @@ final class Services: ObservableObject {
                                                      in: .userDomainMask,
                                                      appropriateFor: nil,
                                                      create: true)
-            .appendingPathComponent("ClipHistory", isDirectory: true)
+            .appendingPathComponent("Birchboard", isDirectory: true)
         try FileManager.default.createDirectory(at: appSupport,
                                                 withIntermediateDirectories: true)
         let dbURL = appSupport.appendingPathComponent("history.sqlite")

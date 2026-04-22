@@ -85,7 +85,7 @@ final class ClipboardWatcher {
         do {
             try repository.upsert(kind: kind, source: source)
         } catch {
-            NSLog("ClipHistory: upsert failed: \(error)")
+            NSLog("Birchboard: upsert failed: \(error)")
         }
     }
 }

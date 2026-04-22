@@ -62,7 +62,7 @@ throwaway app-specific password instead.
 1. Sign in at [appleid.apple.com](https://appleid.apple.com).
 2. Go to **Sign-In and Security → App-Specific Passwords**.
 3. Click **+ Generate an app-specific password**.
-4. Label it something like `ClipHistory notarytool`. Click Create.
+4. Label it something like `Birchboard notarytool`. Click Create.
 5. Copy the password **now** — it's shown once, format `xxxx-xxxx-xxxx-xxxx`.
 
 ## 3. One-time: store notarization credentials in the keychain
@@ -72,18 +72,18 @@ password you just generated. It'll store them in your login keychain
 under a profile name you pick.
 
 ```sh
-xcrun notarytool store-credentials "notarytool-clip" \
+xcrun notarytool store-credentials "notarytool-birchboard" \
     --apple-id "YOUR_APPLE_ID_EMAIL" \
     --team-id  "4Q4VFU52B6" \
     --password "xxxx-xxxx-xxxx-xxxx"
 ```
 
-Replace the email and password. `notarytool-clip` is just a local label —
+Replace the email and password. `notarytool-birchboard` is just a local label —
 you can pick anything; `make-dmg.sh` reads it from `$NOTARY_PROFILE`.
 
 Quick verification:
 ```sh
-xcrun notarytool history --keychain-profile "notarytool-clip"
+xcrun notarytool history --keychain-profile "notarytool-birchboard"
 ```
 Empty history is fine — it just confirms the credentials work.
 
@@ -94,8 +94,8 @@ Empty history is fine — it just confirms the credentials work.
 After the one-time setup, shipping a new build is:
 
 ```sh
-cd ClipHistory
-NOTARY_PROFILE=notarytool-clip ./scripts/make-dmg.sh
+cd Birchboard
+NOTARY_PROFILE=notarytool-birchboard ./scripts/make-dmg.sh
 ```
 
 What the script does:
@@ -106,7 +106,7 @@ What the script does:
    signs with your Developer ID cert + the hardened runtime entitlement
    that's already in `project.yml`.
 3. `hdiutil create` — packages the `.app` plus an `Applications` symlink
-   into `build/ClipHistory.dmg`.
+   into `build/Birchboard.dmg`.
 4. `codesign` — signs the DMG itself. Gatekeeper wants both the app and
    the container signed.
 5. `xcrun notarytool submit … --wait` — uploads the DMG to Apple's
@@ -117,7 +117,7 @@ What the script does:
    so it passes Gatekeeper even when the user is offline.
 7. `spctl --assess` — prints whether Gatekeeper accepts the final DMG.
 
-Output: `ClipHistory/build/ClipHistory.dmg`, roughly 3 MB.
+Output: `Birchboard/build/Birchboard.dmg`, roughly 3 MB.
 
 ### What the notarization output looks like
 
@@ -131,7 +131,7 @@ Processing complete
 On failure you'll get `status: Invalid` and a submission ID. Fetch the log:
 ```sh
 xcrun notarytool log 1a2b3c4d-5678-… \
-    --keychain-profile "notarytool-clip"
+    --keychain-profile "notarytool-birchboard"
 ```
 Common causes:
 - **"The binary is not signed with a valid Developer ID certificate."** —
@@ -148,10 +148,10 @@ Common causes:
 
 ## 5. Send it to a friend
 
-Just share `ClipHistory/build/ClipHistory.dmg`. Your friend:
+Just share `Birchboard/build/Birchboard.dmg`. Your friend:
 
 1. Double-clicks the DMG.
-2. Drags ClipHistory to Applications.
+2. Drags Birchboard to Applications.
 3. First launch: macOS shows a "downloaded from the internet" prompt — they
    click Open. No scary "unidentified developer" dialog because it's
    notarized.
@@ -166,7 +166,7 @@ Just share `ClipHistory/build/ClipHistory.dmg`. Your friend:
 2. Bump `CURRENT_PROJECT_VERSION` (`1` → `2`).
 3. Run the same command:
    ```sh
-   NOTARY_PROFILE=notarytool-clip ./scripts/make-dmg.sh
+   NOTARY_PROFILE=notarytool-birchboard ./scripts/make-dmg.sh
    ```
 4. Share the new DMG.
 
@@ -177,7 +177,7 @@ good for years, and the keychain profile persists.
 
 ## Troubleshooting
 
-**"Signing for ClipHistory requires a development team."**
+**"Signing for Birchboard requires a development team."**
 Xcode couldn't find a Developer ID Application cert. Check
 `security find-identity -v -p codesigning` and re-download the cert from
 developer.apple.com if missing.
@@ -198,9 +198,9 @@ Rare but happens during Apple's outages. Re-submit after 10 minutes. The
 **Friend's Mac still says "can't be opened"**
 Usually means the staple step failed silently. Verify:
 ```sh
-xcrun stapler validate build/ClipHistory.dmg
+xcrun stapler validate build/Birchboard.dmg
 spctl --assess --type open \
-    --context context:primary-signature --verbose build/ClipHistory.dmg
+    --context context:primary-signature --verbose build/Birchboard.dmg
 ```
 `spctl` should say `accepted source=Notarized Developer ID`. If not,
 re-run the full build — stapling has to happen *after* the notary
