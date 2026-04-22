@@ -34,9 +34,11 @@ System requirements: macOS 14 (Sonoma) or newer. Apple Silicon or Intel.
   The first nine rows show their shortcut inline so you don't have to
   memorise the positions.
 - **Code-aware row chips**: any entry detected as code gets a small
-  language tag next to the source-app name. Detected languages: JSON,
-  YAML, XML, HTML, Markdown, Swift, Java, JavaScript, TypeScript, Python,
-  Go, Rust, Ruby, SQL, Shell, Dockerfile, CSS.
+  language tag next to the source-app name. 17 languages detected via
+  regex heuristics: JSON, YAML, XML, HTML, Markdown, Swift, Java,
+  JavaScript, TypeScript, Python, Go, Rust, Ruby, SQL, Shell, Dockerfile,
+  CSS. Detection order resolves shared-keyword conflicts (Java is
+  checked before Python so `class Foo { … }` doesn't falsely match).
 - **Pin / unpin** entries so they stay on top (⌘P).
 - **Delete** with ⌘⌫.
 
@@ -54,13 +56,16 @@ System requirements: macOS 14 (Sonoma) or newer. Apple Silicon or Intel.
   numbers, bools, null), array indices, XML elements (`<tag>`), XML
   attributes (`@attr`), and text nodes (`#text`) all coloured
   consistently with the in-line highlighter. Click any `{ … keys }` /
-  `[ … items ]` / `<tag>` row to expand or collapse.
+  `[ … items ]` / `<tag>` row to expand or collapse. Each subtree's
+  expansion state is independent. Falls back to the flat highlighted
+  preview if the payload doesn't parse.
 
 ## ⌘T — Transform picker
 
 Replace the clipboard payload with a transformed version before pasting.
 Inapplicable transforms (e.g. "Pretty JSON" over non-JSON) are hidden
-upfront. Fuzzy-filter by name.
+upfront; fuzzy-filter by name. 27 built-in transforms across the
+categories below.
 
 - **JSON** — Pretty-print, minify.
 - **JSON ↔ YAML** — auto-direction.
