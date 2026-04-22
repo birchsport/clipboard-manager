@@ -31,6 +31,11 @@ falls short (nonactivating panels, global hotkeys, focus capture).
 - Configurable retention (max count, max age) with automatic hourly sweeps.
 - Respects the `nspasteboard.org` concealed/transient convention — password
   managers marking their entries this way are ignored.
+- **Ignored-apps list** (Settings → Privacy): capture is skipped entirely
+  while the frontmost app matches. Ships with sensible defaults
+  (1Password 7/8, Bitwarden, Keychain Access, Apple Passwords, LastPass,
+  KeePassXC); user-editable via a file picker that reads the bundle ID
+  straight from the chosen `.app`.
 - Optional "restore previous clipboard after paste" so history isn't disturbed by
   its own use.
 

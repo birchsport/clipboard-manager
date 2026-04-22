@@ -27,7 +27,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // 3. Clipboard watcher.
         let watcher = ClipboardWatcher(repository: services.repository,
-                                       blobStore: services.blobStore)
+                                       blobStore: services.blobStore,
+                                       preferences: services.preferences)
         watcher.start()
         self.watcher = watcher
 
