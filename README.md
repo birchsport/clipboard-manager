@@ -19,10 +19,16 @@ falls short (nonactivating panels, global hotkeys, focus capture).
 - ⌘Y toggles a full-panel **Quick Look** preview of the selected entry
   (full-size images, larger monospaced text, file paths with icons). Arrow
   keys still navigate while the overlay is open.
+- **Code-aware panel**: each text entry is sniffed for its language (JSON,
+  YAML, XML, HTML, Swift, JS/TS, Python, Go, Rust, Ruby, SQL, Shell,
+  Dockerfile, Markdown, CSS). Detected rows show a small language chip and
+  the preview + Quick Look panes render with syntax highlighting.
 - ⌘T opens a **transform picker** over the selected text entry — pretty/minify
-  JSON, decode JWT, Base64 / URL en-decode, case conversions (UPPER / lower /
-  Title / camel / snake / kebab), strip ANSI / HTML, extract URLs / emails.
-  Fuzzy-search transforms by name, ⏎ applies and pastes.
+  JSON, JSON ↔ YAML, decode JWT, Unix timestamp ↔ ISO 8601, SHA-256 / SHA-1 /
+  MD5, number-base conversions (dec / hex / bin), query string ↔ JSON,
+  Base64 / URL en-decode, case conversions (UPPER / lower / Title / camel /
+  snake / kebab), strip ANSI / HTML, extract URLs / emails. Fuzzy-search
+  transforms by name, ⏎ applies and pastes.
 - ⌘S opens a **snippet picker** of user-authored canned text, managed in
   Settings → Snippets. Supports placeholders: `{clipboard}`, `{date[:FMT]}`,
   `{time[:FMT]}`, `{uuid}`, `{newline}`, `{tab}`, plus `{{` / `}}` for

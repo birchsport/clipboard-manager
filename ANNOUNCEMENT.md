@@ -40,6 +40,8 @@ The other 10% is where it earns its keep:
 ### Browsing
 - fzf-style **fuzzy search** as you type (word-boundary / consecutive /
   camelCase bonuses).
+- **Code-aware** — rows tagged with a language chip when the content is
+  code; preview and Quick Look panes render with syntax highlighting.
 - Arrow keys to navigate, ⏎ to paste, ⇧⏎ to paste as plain text.
 - **⌘1–⌘9 quick-paste** the Nth visible entry. The first nine rows show
   their shortcut inline so you don't have to remember which is which.
@@ -50,10 +52,16 @@ The other 10% is where it earns its keep:
 - **Delete** with ⌘⌫.
 
 ### ⌘T — Transform picker
-Replace the clipboard payload with one of 16 transforms before it pastes:
+Replace the clipboard payload with a transform before it pastes:
 
 - **JSON** — pretty-print, minify.
+- **JSON ↔ YAML** — auto-direction.
 - **JWT** — decode (header + payload pretty-printed).
+- **Timestamp** — Unix time ↔ ISO 8601, auto-direction (10- or 13-digit
+  input → ISO, ISO → seconds).
+- **Hashes** — SHA-256, SHA-1, MD5.
+- **Number bases** — decimal / hex / binary all three at once.
+- **Query string ↔ JSON** — `foo=1&bar=2` ↔ flat object.
 - **Encoding** — Base64 encode / decode, URL encode / decode.
 - **Case** — UPPER, lower, Title, camelCase, snake_case, kebab-case.
 - **Strip** — ANSI escape codes, HTML tags.

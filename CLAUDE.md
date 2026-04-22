@@ -76,11 +76,20 @@ The panel is `.nonactivatingPanel` so its parent app never becomes frontmost —
 
 Three parallel registries, each roughly the same shape:
 
-- **`Transforms/`** — a `TextTransform` protocol (`id`, `displayName`, `isApplicable`, `apply`) and a hard-coded `TransformRegistry.all`. 16 built-ins in `BuiltInTransforms.swift`. Transforms always produce text that flows through the normal paste path.
+- **`Transforms/`** — a `TextTransform` protocol (`id`, `displayName`, `isApplicable`, `apply`) and a hard-coded `TransformRegistry.all`. Built-ins in `BuiltInTransforms.swift` (JSON / YAML / JWT / timestamp / hashes / number-bases / query-string / Base64 / URL / case / strip / extract). Transforms always produce text that flows through the normal paste path.
 - **`Snippets/`** — user-authored, persisted. `SnippetStore` is `@MainActor`-isolated, `@Published` snippets array serialized to `UserDefaults` as JSON under key `snippets.v1`. Placeholders (`{clipboard}`, `{date[:FMT]}`, `{uuid}`, etc.) expand via `SnippetPlaceholders.expand` on apply.
 - **`Actions/`** — an `EntryAction` protocol that takes an `ActionContext` exposing `paste(String)` and `dismiss()`. Actions may be pure side-effects (`Open in Browser` → `NSWorkspace.open`, no paste) or paste-producing (`Paste as rgb()`). Applicability is "pure match" — the entire trimmed payload must match the classifier (URL, email, hex color, phone).
 
 Adding a new transform, action, or snippet placeholder is a one-file change — add a struct conforming to the protocol and insert into the registry.
+
+### Language detection + syntax highlighting
+
+**`Detection/`** holds a pair of orthogonal helpers used by the panel:
+
+- **`LanguageDetector`** — heuristic regex-based sniffer returning a `DetectedLanguage?` (JSON / YAML / XML / HTML / Swift / JS / TS / Python / Go / Rust / Ruby / SQL / Shell / Dockerfile / Markdown / CSS). Runs on demand from views (no DB migration, no persisted field); a small thread-safe LRU cache keyed by entry id keeps re-lexing cheap during scroll.
+- **`CodeHighlighter`** — takes `(text, language)` → `AttributedString`. Swift goes through **Splash** (`SyntaxHighlighter<AttributedStringOutputFormat>`); every other language uses a generic regex-rule runner (`Rule` with a pattern and a `SwiftUI.Color`), applied in order. Splash's `Color` and `SyntaxHighlighter` types collide with SwiftUI and with one of our own types — hence `CodeHighlighter.Palette` uses fully-qualified `SwiftUI.Color(...)` and the wrapper is `CodeHighlighter` not `SyntaxHighlighter`. `CodeHighlighter.styledText(_:entryID:)` is the one-call helper for rendering a preview-ready `Text`.
+
+Adding a language = extend the `DetectedLanguage` enum + add a `looksLike…` case + add a rule set. Two matching additions, ~20 LOC.
 
 ### Storage
 

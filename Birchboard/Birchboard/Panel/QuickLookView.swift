@@ -85,9 +85,9 @@ struct QuickLookView: View {
         if let entry {
             switch entry.kind {
             case .text(let s):
-                textView(s)
+                textView(s, entryID: entry.id)
             case .rtf(_, let plain):
-                textView(plain)
+                textView(plain, entryID: entry.id)
             case .image(let path, _, _, _):
                 imageView(path)
             case .fileURLs(let urls):
@@ -100,10 +100,9 @@ struct QuickLookView: View {
         }
     }
 
-    private func textView(_ s: String) -> some View {
+    private func textView(_ s: String, entryID: Int64) -> some View {
         ScrollView {
-            Text(s)
-                .font(.system(size: 13, design: .monospaced))
+            CodeHighlighter.styledText(s, entryID: entryID)
                 .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(14)

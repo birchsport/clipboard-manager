@@ -239,6 +239,9 @@ private struct EntryRow: View {
                             .foregroundStyle(.secondary)
                             .font(.system(size: 10))
                     }
+                    if let lang = detectedLanguage {
+                        languageChip(lang)
+                    }
                     Spacer(minLength: 0)
                     Text(relativeTime(from: entry.createdAt))
                         .foregroundStyle(.secondary)
@@ -250,6 +253,34 @@ private struct EntryRow: View {
             }
         }
         .padding(.vertical, 2)
+    }
+
+    /// Detected language for this entry, if any — only checked for text /
+    /// rtf entries since images and file URLs can't be code.
+    private var detectedLanguage: DetectedLanguage? {
+        switch entry.kind {
+        case .text(let s):
+            return LanguageDetector.detect(s, cacheKey: "text-\(entry.id)")
+        case .rtf(_, let plain):
+            return LanguageDetector.detect(plain, cacheKey: "rtf-\(entry.id)")
+        case .image, .fileURLs:
+            return nil
+        }
+    }
+
+    /// Compact uppercase chip shown next to the source-app name when we
+    /// detected a language. Uses the same visual weight as the source app
+    /// name so code-ish rows stay scannable without dominating the row.
+    private func languageChip(_ language: DetectedLanguage) -> some View {
+        Text(language.chipLabel)
+            .font(.system(size: 9, weight: .semibold, design: .monospaced))
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 4)
+            .padding(.vertical, 1)
+            .background(
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Color.primary.opacity(0.08))
+            )
     }
 
     /// Small right-aligned "⌘N" chip. Selected rows get a slightly stronger
@@ -337,15 +368,13 @@ private struct EntryPreviewView: View {
         switch entry.kind {
         case .text(let s):
             ScrollView {
-                Text(s)
-                    .font(.system(.body, design: .monospaced))
+                CodeHighlighter.styledText(s, entryID: entry.id)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .textSelection(.enabled)
             }
         case .rtf(_, let plain):
             ScrollView {
-                Text(plain)
-                    .font(.system(.body, design: .monospaced))
+                CodeHighlighter.styledText(plain, entryID: entry.id)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .textSelection(.enabled)
             }

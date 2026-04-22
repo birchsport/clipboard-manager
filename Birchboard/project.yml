@@ -27,6 +27,12 @@ packages:
   GRDB:
     url: https://github.com/groue/GRDB.swift
     from: "6.0.0"
+  Splash:
+    url: https://github.com/JohnSundell/Splash
+    from: "0.16.0"
+  Yams:
+    url: https://github.com/jpsim/Yams
+    from: "5.0.0"
 
 targets:
   Birchboard:
@@ -83,3 +89,5 @@ targets:
       - package: KeyboardShortcuts
       - package: GRDB
         product: GRDB
+      - package: Splash
+      - package: Yams
