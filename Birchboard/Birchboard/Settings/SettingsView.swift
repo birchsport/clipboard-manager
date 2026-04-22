@@ -112,6 +112,9 @@ private struct PrivacyTab: View {
                 Button("Clear unpinned entries…") { confirm = .unpinned }
                 Button("Clear all history…", role: .destructive) { confirm = .all }
             }
+            Section("Backup") {
+                BackupSection(repository: services.repository)
+            }
             Section("Ignored apps") {
                 IgnoredAppsSection(preferences: preferences)
             }
@@ -284,5 +287,145 @@ private struct IgnoredAppRow: View {
                 .scaledToFit()
                 .foregroundStyle(.tertiary)
         }
+    }
+}
+
+/// Export / import buttons. Writes the full history as a single JSON file
+/// (images inlined as base64). Reads the same shape back, dedup-merging on
+/// `dedup_hash` so re-importing the same file is a no-op.
+private struct BackupSection: View {
+    let repository: EntryRepository
+    @State private var status: Status = .idle
+    @State private var isWorking = false
+
+    enum Status: Equatable {
+        case idle
+        case success(String)
+        case failure(String)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Export bundles every entry (including images) into a single .json file. Import merges — duplicates are skipped by content hash.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            HStack(spacing: 8) {
+                Button {
+                    runExport()
+                } label: {
+                    Label("Export…", systemImage: "square.and.arrow.up")
+                }
+                .disabled(isWorking)
+
+                Button {
+                    runImport()
+                } label: {
+                    Label("Import…", systemImage: "square.and.arrow.down")
+                }
+                .disabled(isWorking)
+
+                if isWorking {
+                    ProgressView()
+                        .scaleEffect(0.6)
+                        .frame(width: 16, height: 16)
+                }
+                Spacer()
+            }
+
+            switch status {
+            case .idle:
+                EmptyView()
+            case .success(let msg):
+                Text(msg)
+                    .font(.caption)
+                    .foregroundStyle(.green)
+            case .failure(let msg):
+                Text(msg)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func runExport() {
+        let panel = NSSavePanel()
+        panel.title = "Export Birchboard history"
+        panel.allowedContentTypes = [.json]
+        panel.canCreateDirectories = true
+        panel.isExtensionHidden = false
+        panel.nameFieldStringValue = defaultExportFilename()
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        isWorking = true
+        status = .idle
+        Task.detached(priority: .userInitiated) {
+            do {
+                let archive = try repository.exportArchive()
+                let encoder = JSONEncoder()
+                encoder.dateEncodingStrategy = .iso8601
+                encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+                let data = try encoder.encode(archive)
+                try data.write(to: url, options: [.atomic])
+                await MainActor.run {
+                    status = .success("Exported \(archive.entries.count) entries to \(url.lastPathComponent).")
+                    isWorking = false
+                }
+            } catch {
+                await MainActor.run {
+                    status = .failure("Export failed: \(error.localizedDescription)")
+                    isWorking = false
+                }
+            }
+        }
+    }
+
+    private func runImport() {
+        let panel = NSOpenPanel()
+        panel.title = "Import Birchboard history"
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.allowedContentTypes = [.json]
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        isWorking = true
+        status = .idle
+        Task.detached(priority: .userInitiated) {
+            do {
+                let data = try Data(contentsOf: url)
+                let decoder = JSONDecoder()
+                decoder.dateDecodingStrategy = .iso8601
+                let archive = try decoder.decode(HistoryArchive.self, from: data)
+                guard archive.version == HistoryArchive.currentVersion else {
+                    throw NSError(domain: "Birchboard", code: 1, userInfo: [
+                        NSLocalizedDescriptionKey:
+                            "Archive version \(archive.version) isn't supported (expected \(HistoryArchive.currentVersion))."
+                    ])
+                }
+                let summary = try repository.importArchive(archive)
+                await MainActor.run {
+                    let msg = "Imported \(summary.imported) entries"
+                        + (summary.skippedDuplicates > 0
+                            ? " (\(summary.skippedDuplicates) duplicates skipped)."
+                            : ".")
+                    status = .success(msg)
+                    isWorking = false
+                }
+            } catch {
+                await MainActor.run {
+                    status = .failure("Import failed: \(error.localizedDescription)")
+                    isWorking = false
+                }
+            }
+        }
+    }
+
+    private func defaultExportFilename() -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        return "Birchboard-\(formatter.string(from: Date())).json"
     }
 }

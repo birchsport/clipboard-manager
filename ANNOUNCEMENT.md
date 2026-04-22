@@ -96,6 +96,9 @@ The picker only shows actions that make sense for the selected entry:
 - SQLite database + image blobs at `~/Library/Application Support/Birchboard/`.
   Delete that folder to fully reset.
 - "Clear unpinned" / "Clear all" buttons in Settings → Privacy.
+- **Export / Import**: Settings → Privacy → Backup dumps the whole history
+  (including images) into a single JSON file you can move between Macs or
+  stash somewhere as a backup. Re-importing is dedup-safe.
 
 ---
 

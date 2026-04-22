@@ -4,7 +4,12 @@ import Combine
 
 /// The app's single read/write gateway to the `entries` table. All mutations flow
 /// through here so observers (the panel view model) can be notified via `changes`.
-final class EntryRepository {
+///
+/// Safe to use from any thread: GRDB's `DatabasePool` serialises access
+/// internally and `PassthroughSubject` publishes are likewise thread-safe.
+/// Marked `@unchecked Sendable` so background `Task.detached` work (export /
+/// import) can call through without actor-isolation warnings.
+final class EntryRepository: @unchecked Sendable {
     private let database: Database
     private let blobStore: BlobStore
     private let subject = PassthroughSubject<Void, Never>()
@@ -88,6 +93,127 @@ final class EntryRepository {
         }
         pruneBlobs()
         subject.send()
+    }
+
+    // MARK: - Archive (export / import)
+
+    /// Summary returned from an import so the UI can tell the user what
+    /// happened.
+    struct ImportSummary {
+        let imported: Int
+        let skippedDuplicates: Int
+    }
+
+    /// Build an in-memory archive of every entry. Image entries load their
+    /// blob bytes so the archive is self-contained.
+    func exportArchive() throws -> HistoryArchive {
+        let entries = allEntries()
+        var archived: [ArchivedEntry] = []
+        archived.reserveCapacity(entries.count)
+        for entry in entries {
+            // If an image blob is missing on disk, skip the entry rather
+            // than explode — the DB reference is stale. Rare in practice.
+            do {
+                let a = try ArchivedEntry(from: entry) { url in
+                    try Data(contentsOf: url)
+                }
+                archived.append(a)
+            } catch {
+                NSLog("Birchboard: skipping entry \(entry.id) during export: \(error)")
+            }
+        }
+        return HistoryArchive(entries: archived)
+    }
+
+    /// Restore `archive` into the database. Entries whose `dedup_hash`
+    /// already exists are counted as duplicates and skipped — the caller
+    /// sees them in the returned `ImportSummary`.
+    @discardableResult
+    func importArchive(_ archive: HistoryArchive) throws -> ImportSummary {
+        var imported = 0
+        var skipped = 0
+
+        for entry in archive.entries {
+            let inserted = try database.pool.write { db -> Bool in
+                // Dedup by hash.
+                let exists = try Bool.fetchOne(
+                    db,
+                    sql: "SELECT EXISTS(SELECT 1 FROM entries WHERE dedup_hash = ?)",
+                    arguments: [entry.dedupHash]
+                ) ?? false
+                if exists { return false }
+
+                try Self.insertArchived(entry, blobStore: blobStore, db: db)
+                return true
+            }
+            if inserted { imported += 1 } else { skipped += 1 }
+        }
+        subject.send()
+        return ImportSummary(imported: imported, skippedDuplicates: skipped)
+    }
+
+    private static func insertArchived(_ entry: ArchivedEntry,
+                                       blobStore: BlobStore,
+                                       db: GRDB.Database) throws {
+        var text: String?
+        var rtf: Data?
+        var blobPath: String?
+        var width: Int?
+        var height: Int?
+        var imageHash: String?
+        var fileURLsJSON: String?
+
+        switch entry.kind {
+        case .text:
+            text = entry.text ?? ""
+        case .rtf:
+            rtf = entry.rtfData
+            text = entry.text ?? ""
+        case .image:
+            guard let png = entry.imagePNG,
+                  let hash = entry.imageHash else { return }
+            let url = try blobStore.store(data: png, hash: hash, ext: "png")
+            blobPath = url.path
+            width = entry.imageWidth
+            height = entry.imageHeight
+            imageHash = hash
+        case .fileURLs:
+            let strings = entry.fileURLs ?? []
+            if let data = try? JSONSerialization.data(withJSONObject: strings, options: []) {
+                fileURLsJSON = String(data: data, encoding: .utf8)
+            }
+        }
+
+        let searchText: String = {
+            switch entry.kind {
+            case .text, .rtf: return entry.text ?? ""
+            case .image:      return ""
+            case .fileURLs:   return (entry.fileURLs ?? []).joined(separator: "\n")
+            }
+        }()
+
+        try db.execute(sql: """
+            INSERT INTO entries
+            (kind, text, rtf_data, blob_path, image_width, image_height, image_hash,
+             file_urls, search_text, dedup_hash, source_bundle_id, source_name,
+             created_at, pinned_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, arguments: [
+                entry.kind.rawValue,
+                text,
+                rtf,
+                blobPath,
+                width,
+                height,
+                imageHash,
+                fileURLsJSON,
+                searchText,
+                entry.dedupHash,
+                entry.sourceBundleID,
+                entry.sourceName,
+                entry.createdAt,
+                entry.pinnedAt,
+            ])
     }
 
     // MARK: - Retention

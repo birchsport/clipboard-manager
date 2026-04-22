@@ -41,6 +41,9 @@ falls short (nonactivating panels, global hotkeys, focus capture).
   (1Password 7/8, Bitwarden, Keychain Access, Apple Passwords, LastPass,
   KeePassXC); user-editable via a file picker that reads the bundle ID
   straight from the chosen `.app`.
+- **Export / Import history** (Settings → Privacy → Backup): dump every entry
+  (including image bytes) into a single JSON file; import the same shape
+  back. Dedup by content hash means re-importing is a no-op.
 - Optional "restore previous clipboard after paste" so history isn't disturbed by
   its own use.
 
