@@ -27,6 +27,7 @@ enum TransformRegistry {
         KebabCaseTransform(),
         TrimWhitespaceTransform(),
         TrimTrailingPerLineTransform(),
+        TrimWhitespacePerLineTransform(),
         StripANSITransform(),
         StripHTMLTransform(),
         ExtractURLsTransform(),

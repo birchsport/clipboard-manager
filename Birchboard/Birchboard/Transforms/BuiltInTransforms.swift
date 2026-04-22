@@ -308,7 +308,6 @@ struct TrimTrailingPerLineTransform: TextTransform {
     let displayName = "Trim trailing whitespace per line"
 
     func isApplicable(to text: String) -> Bool {
-        // Offer only when the transform would change the payload.
         guard let out = apply(to: text) else { return false }
         return out != text
     }
@@ -316,17 +315,45 @@ struct TrimTrailingPerLineTransform: TextTransform {
     func apply(to text: String) -> String? {
         text
             .components(separatedBy: "\n")
-            .map(Self.rtrim)
+            .map(LineTrim.rtrim)
             .joined(separator: "\n")
     }
+}
 
-    /// Strip trailing Unicode whitespace from a single line (no newlines
-    /// expected in the input since the caller has already split).
-    private static func rtrim(_ line: String) -> String {
+/// Strips leading *and* trailing whitespace from each line. Removes
+/// indentation and trailing spaces both, flattening pasted content
+/// without disturbing the line structure. Good for cleaning copy-paste
+/// from tables or indent-heavy sources.
+struct TrimWhitespacePerLineTransform: TextTransform {
+    let id = "whitespace.trim_lines"
+    let displayName = "Trim whitespace per line"
+
+    func isApplicable(to text: String) -> Bool {
+        guard let out = apply(to: text) else { return false }
+        return out != text
+    }
+
+    func apply(to text: String) -> String? {
+        text
+            .components(separatedBy: "\n")
+            .map(LineTrim.trim)
+            .joined(separator: "\n")
+    }
+}
+
+/// Shared per-line trim helpers. Uses `Character.isWhitespace` (Unicode-
+/// aware, includes \r) so Windows-style CRLF-split lines get their
+/// trailing \r stripped too.
+private enum LineTrim {
+    static func rtrim(_ line: String) -> String {
         var s = line
-        while let last = s.last, last.isWhitespace {
-            s.removeLast()
-        }
+        while let last = s.last, last.isWhitespace { s.removeLast() }
+        return s
+    }
+
+    static func trim(_ line: String) -> String {
+        var s = rtrim(line)
+        while let first = s.first, first.isWhitespace { s.removeFirst() }
         return s
     }
 }
