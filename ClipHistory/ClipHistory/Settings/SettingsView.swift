@@ -11,9 +11,10 @@ struct SettingsView: View {
         TabView {
             GeneralTab().tabItem { Label("General", systemImage: "gearshape") }
             HotkeyTab().tabItem { Label("Hotkey", systemImage: "command") }
+            SnippetsTab().tabItem { Label("Snippets", systemImage: "text.badge.plus") }
             PrivacyTab().tabItem { Label("Privacy", systemImage: "lock") }
         }
-        .frame(width: 460, height: 340)
+        .frame(width: 620, height: 420)
     }
 }
 

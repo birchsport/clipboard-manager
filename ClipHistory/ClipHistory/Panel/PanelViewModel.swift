@@ -3,13 +3,12 @@ import Combine
 import Foundation
 
 /// The panel is a small state machine: ordinary browsing of the history, or
-/// picking a transform to apply to the currently-selected entry (`⌘T`).
+/// picking a transform (`⌘T`) or snippet (`⌘S`). `savedQuery` lets Esc
+/// restore the prior browse-mode search text.
 enum PanelMode: Equatable {
     case browse
-    /// The user is picking a transform for `source`. We remember `savedQuery`
-    /// so hitting Esc returns to the browse list with their previous filter
-    /// intact.
     case transformPicker(source: ClipEntry, savedQuery: String)
+    case snippetPicker(savedQuery: String)
 }
 
 /// Backing state for `PanelContentView`. Loads entries from the repository, runs the
@@ -36,6 +35,12 @@ final class PanelViewModel: ObservableObject {
     /// Brief error message when a transform's `apply` returns nil. Cleared
     /// automatically after a short delay or on mode change.
     @Published var transformError: String?
+
+    // MARK: - Snippet-mode state
+
+    @Published var snippetQuery: String = ""
+    @Published var snippetMatches: [Snippet] = []
+    @Published var snippetSelectedIndex: Int = 0
 
     // MARK: - Quick Look
 
@@ -70,6 +75,18 @@ final class PanelViewModel: ObservableObject {
         $transformQuery
             .removeDuplicates()
             .sink { [weak self] _ in self?.refreshTransformMatches() }
+            .store(in: &cancellables)
+
+        // Refilter snippets as the user types in snippet mode.
+        $snippetQuery
+            .removeDuplicates()
+            .sink { [weak self] _ in self?.refreshSnippetMatches() }
+            .store(in: &cancellables)
+
+        // Refresh the snippet list whenever the store mutates (e.g. user adds
+        // or edits one in Settings while the panel is open).
+        services.snippetStore.$snippets
+            .sink { [weak self] _ in self?.refreshSnippetMatches() }
             .store(in: &cancellables)
 
         refresh()
@@ -190,6 +207,91 @@ final class PanelViewModel: ObservableObject {
             : nil
     }
 
+    // MARK: - Snippet mode
+
+    func enterSnippetMode() {
+        // Refuse to stack picker modes on top of each other.
+        guard case .browse = mode else { return }
+        let savedQuery = query
+        mode = .snippetPicker(savedQuery: savedQuery)
+        snippetQuery = ""
+        snippetSelectedIndex = 0
+        refreshSnippetMatches()
+        focusRequestTick &+= 1
+    }
+
+    func exitSnippetMode() {
+        if case .snippetPicker(let savedQuery) = mode {
+            query = savedQuery
+        }
+        mode = .browse
+        focusRequestTick &+= 1
+    }
+
+    private func refreshSnippetMatches() {
+        let all = services.snippetStore.snippets
+        let trimmed = snippetQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if trimmed.isEmpty {
+            snippetMatches = all
+        } else {
+            let scored: [(s: Snippet, score: Int, order: Int)] = all
+                .enumerated()
+                .compactMap { idx, s in
+                    guard let score = FuzzyMatcher.score(
+                        query: trimmed,
+                        candidate: s.displayName
+                    ) else { return nil }
+                    return (s, score, idx)
+                }
+            snippetMatches = scored
+                .sorted { a, b in
+                    if a.score != b.score { return a.score > b.score }
+                    return a.order < b.order
+                }
+                .map { $0.s }
+        }
+
+        if snippetSelectedIndex >= snippetMatches.count {
+            snippetSelectedIndex = max(0, snippetMatches.count - 1)
+        }
+    }
+
+    var selectedSnippet: Snippet? {
+        snippetMatches.indices.contains(snippetSelectedIndex)
+            ? snippetMatches[snippetSelectedIndex]
+            : nil
+    }
+
+    /// Live-expanded preview of the currently-selected snippet. Reads the
+    /// current pasteboard so `{clipboard}` shows the real value the user
+    /// would get on paste.
+    func previewForSelectedSnippet() -> String? {
+        guard let snippet = selectedSnippet else { return nil }
+        let clipboardText = NSPasteboard.general.string(forType: .string)
+        return SnippetPlaceholders.expand(snippet.body, clipboard: clipboardText)
+    }
+
+    /// Expand `snippet`'s placeholders against the current pasteboard and
+    /// paste via the normal paste flow as a one-shot synthetic entry.
+    func applySnippet(_ snippet: Snippet) {
+        // Read the current clipboard BEFORE we overwrite it.
+        let clipboardText = NSPasteboard.general.string(forType: .string)
+        let expanded = SnippetPlaceholders.expand(snippet.body,
+                                                  clipboard: clipboardText)
+
+        let entry = ClipEntry(
+            id: 0,
+            kind: .text(expanded),
+            createdAt: Date(),
+            source: nil,
+            pinnedAt: nil
+        )
+
+        mode = .browse
+        actions.paste(entry, asPlainText: false)
+    }
+
     /// Apply `transform` to the entry we entered transform mode for, then kick
     /// the normal paste flow. On failure, show an inline error and stay in
     /// transform mode.
@@ -232,6 +334,8 @@ final class PanelViewModel: ObservableObject {
             return handleBrowse(event: event)
         case .transformPicker:
             return handleTransform(event: event)
+        case .snippetPicker:
+            return handleSnippet(event: event)
         }
     }
 
@@ -279,6 +383,12 @@ final class PanelViewModel: ObservableObject {
                 return true
             }
             return false
+        case 1: // S — ⌘S enters snippet mode
+            if cmd {
+                enterSnippetMode()
+                return true
+            }
+            return false
         case 35: // P — ⌘P pins
             if cmd, let entry = selectedEntry {
                 actions.togglePin(entry)
@@ -315,6 +425,25 @@ final class PanelViewModel: ObservableObject {
         }
     }
 
+    private func handleSnippet(event: NSEvent) -> Bool {
+        switch event.keyCode {
+        case 53: // Esc
+            exitSnippetMode()
+            return true
+        case 125: // Down
+            moveSnippetSelection(+1); return true
+        case 126: // Up
+            moveSnippetSelection(-1); return true
+        case 36, 76: // Return
+            if let s = selectedSnippet {
+                applySnippet(s)
+            }
+            return true
+        default:
+            return false
+        }
+    }
+
     private func moveSelection(_ delta: Int) {
         guard !entries.isEmpty else { return }
         selectedIndex = max(0, min(entries.count - 1, selectedIndex + delta))
@@ -324,6 +453,12 @@ final class PanelViewModel: ObservableObject {
         guard !transformMatches.isEmpty else { return }
         transformSelectedIndex = max(0, min(transformMatches.count - 1,
                                             transformSelectedIndex + delta))
+    }
+
+    private func moveSnippetSelection(_ delta: Int) {
+        guard !snippetMatches.isEmpty else { return }
+        snippetSelectedIndex = max(0, min(snippetMatches.count - 1,
+                                          snippetSelectedIndex + delta))
     }
 
     /// Physical top-row number keycodes (stable across US/AZERTY/DVORAK) →

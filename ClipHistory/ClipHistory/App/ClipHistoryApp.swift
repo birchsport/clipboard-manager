@@ -30,6 +30,7 @@ struct ClipHistoryApp: App {
             SettingsView()
                 .environmentObject(appDelegate.services)
                 .environmentObject(appDelegate.services.preferences)
+                .environmentObject(appDelegate.services.snippetStore)
         }
     }
 }

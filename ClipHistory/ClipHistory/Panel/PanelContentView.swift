@@ -16,7 +16,7 @@ struct PanelContentView: View {
             // Search bar. Icon + placeholder + binding all swap on mode so the user
             // sees immediately what they're filtering.
             HStack(spacing: 8) {
-                Image(systemName: isTransformMode ? "wand.and.stars" : "magnifyingglass")
+                Image(systemName: searchIcon)
                     .foregroundStyle(.secondary)
                 TextField(searchPlaceholder, text: searchTextBinding)
                     .textFieldStyle(.plain)
@@ -33,6 +33,8 @@ struct PanelContentView: View {
                 Group {
                     if isTransformMode {
                         TransformPickerView(viewModel: viewModel)
+                    } else if isSnippetMode {
+                        SnippetPickerView(viewModel: viewModel)
                     } else {
                         EntryListView(viewModel: viewModel)
                     }
@@ -41,11 +43,18 @@ struct PanelContentView: View {
 
                 Divider()
 
-                // The preview always shows the currently-selected browse entry. In
-                // transform mode that's the source we'll transform, which is
-                // useful context while the user picks.
-                EntryPreviewView(entry: previewEntry)
-                    .frame(maxWidth: .infinity)
+                // Preview adapts to mode:
+                //  • snippet: live-expanded body of the selected snippet
+                //  • transform: source entry being transformed
+                //  • browse: selected entry
+                Group {
+                    if isSnippetMode {
+                        SnippetPreview(text: viewModel.previewForSelectedSnippet())
+                    } else {
+                        EntryPreviewView(entry: previewEntry)
+                    }
+                }
+                .frame(maxWidth: .infinity)
             }
         }
         .background(.thickMaterial)
@@ -74,20 +83,36 @@ struct PanelContentView: View {
         return false
     }
 
-    private var searchPlaceholder: String {
-        isTransformMode ? "Filter transforms…" : "Search clipboard…"
+    private var isSnippetMode: Bool {
+        if case .snippetPicker = viewModel.mode { return true }
+        return false
     }
 
-    /// Route the single TextField to either browse query or transform query
-    /// depending on mode.
+    private var searchIcon: String {
+        if isTransformMode { return "wand.and.stars" }
+        if isSnippetMode   { return "text.badge.plus" }
+        return "magnifyingglass"
+    }
+
+    private var searchPlaceholder: String {
+        if isTransformMode { return "Filter transforms…" }
+        if isSnippetMode   { return "Find snippet…" }
+        return "Search clipboard…"
+    }
+
+    /// Route the single TextField to the correct query depending on mode.
     private var searchTextBinding: Binding<String> {
         Binding(
             get: {
-                isTransformMode ? viewModel.transformQuery : viewModel.query
+                if isTransformMode { return viewModel.transformQuery }
+                if isSnippetMode   { return viewModel.snippetQuery }
+                return viewModel.query
             },
             set: { newValue in
                 if isTransformMode {
                     viewModel.transformQuery = newValue
+                } else if isSnippetMode {
+                    viewModel.snippetQuery = newValue
                 } else {
                     viewModel.query = newValue
                 }
@@ -102,6 +127,33 @@ struct PanelContentView: View {
             return source
         }
         return viewModel.selectedEntry
+    }
+}
+
+/// Simple monospaced text preview used for snippet expansion.
+private struct SnippetPreview: View {
+    let text: String?
+
+    var body: some View {
+        Group {
+            if let text, !text.isEmpty {
+                ScrollView {
+                    Text(text)
+                        .font(.system(.body, design: .monospaced))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .textSelection(.enabled)
+                        .padding(14)
+                }
+            } else {
+                VStack(spacing: 8) {
+                    Spacer()
+                    Text("Pick a snippet to preview")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
     }
 }
 

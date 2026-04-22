@@ -23,6 +23,10 @@ falls short (nonactivating panels, global hotkeys, focus capture).
   JSON, Base64 / URL en-decode, case conversions (UPPER / lower / Title /
   camel / snake / kebab), strip ANSI / HTML, extract URLs / emails. Fuzzy-
   search transforms by name, ⏎ applies and pastes.
+- ⌘S opens a **snippet picker** of user-authored canned text, managed in
+  Settings → Snippets. Supports placeholders: `{clipboard}`, `{date[:FMT]}`,
+  `{time[:FMT]}`, `{uuid}`, `{newline}`, `{tab}`, plus `{{` / `}}` for
+  literal braces. ⏎ expands placeholders and pastes.
 - SQLite-backed persistence (GRDB), with image blobs on disk addressed by SHA-256.
 - Configurable retention (max count, max age) with automatic hourly sweeps.
 - Respects the `nspasteboard.org` concealed/transient convention — password
