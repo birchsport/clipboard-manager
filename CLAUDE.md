@@ -26,7 +26,7 @@ NOTARY_PROFILE=notarytool-birchboard ./scripts/make-dmg.sh   # signed + notarize
 ./scripts/make-dmg.sh                                         # signed only (local use)
 ```
 
-See `RELEASE.md` for the one-time `notarytool` setup.
+See the "Distributing to other Macs" section in `README.md` for the one-time `notarytool` setup.
 
 ## Tests
 

@@ -13,8 +13,9 @@
 #       notary service, wait for approval, and staple the ticket so it
 #       validates offline. The resulting DMG is safe to send to other Macs.
 #
-# See RELEASE.md for the one-time setup (getting a Developer ID cert,
-# creating the app-specific password, storing it as NOTARY_PROFILE).
+# See the "Distributing to other Macs" section in README.md for the
+# one-time setup (getting a Developer ID cert, creating the
+# app-specific password, and `xcrun notarytool store-credentials`).
 set -euo pipefail
 
 cd "$(dirname "$0")/.."

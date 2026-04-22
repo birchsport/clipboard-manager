@@ -103,15 +103,68 @@ identity and TCC remembers the grant.
 
 ## Distributing to other Macs
 
-See [`RELEASE.md`](RELEASE.md) for the full notarized-DMG workflow.
-Short version:
+To send a DMG to another Mac and have it open without Gatekeeper
+complaints, the build has to be signed with a **Developer ID
+Application** cert and **notarized** by Apple. Apple Development certs
+(what the Debug config uses) only work on your own Mac.
+
+### One-time setup
+
+1. **Get a Developer ID Application cert.**
+   developer.apple.com/account → Certificates → `+` → *Developer ID
+   Application*. Follow the CSR prompts (Keychain Access →
+   Certificate Assistant → Request a Certificate…). Double-click the
+   downloaded `.cer` to install. Verify with
+   `security find-identity -v -p codesigning`; you should see a
+   "Developer ID Application: …" line.
+
+2. **Generate an app-specific password** at
+   appleid.apple.com → Sign-In and Security → App-Specific Passwords.
+
+3. **Store notarytool credentials** in the keychain:
+
+   ```sh
+   xcrun notarytool store-credentials "notarytool-birchboard" \
+       --apple-id "you@example.com" \
+       --team-id  "YOUR_TEAM_ID" \
+       --password "xxxx-xxxx-xxxx-xxxx"
+   ```
+
+   The profile name is your label; `make-dmg.sh` reads it from
+   `$NOTARY_PROFILE`.
+
+### Every release
 
 ```sh
+cd Birchboard
 NOTARY_PROFILE=notarytool-birchboard ./scripts/make-dmg.sh
 ```
 
-(requires one-time setup of a Developer ID Application certificate and
-a `notarytool` keychain profile — also documented in `RELEASE.md`.)
+`make-dmg.sh` runs `xcodegen generate`, archives the Release config
+(manual Developer ID signing + hardened runtime), packages the `.app`
+into a DMG, codesigns the DMG, submits to Apple's notary service with
+`--wait`, staples the returned ticket, and runs `spctl --assess` to
+verify Gatekeeper accepts it. The DMG lands at
+`Birchboard/build/Birchboard.dmg` (around 3 MB).
+
+If notarization fails, fetch the log with the submission ID from
+the output:
+
+```sh
+xcrun notarytool log <submission-id> \
+    --keychain-profile "notarytool-birchboard"
+```
+
+Most common causes: signing with Apple Development instead of
+Developer ID (check `project.yml` Release override), hardened runtime
+not enabled (`ENABLE_HARDENED_RUNTIME` must be `YES`, already set),
+or a stale archive (delete `build/` and rerun).
+
+### Bumping a version
+
+Bump `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in
+`Birchboard/project.yml`, then run `make-dmg.sh` again. The one-time
+setup above is a one-time-ever affair.
 
 ## Permissions
 
