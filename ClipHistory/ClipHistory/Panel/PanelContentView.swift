@@ -35,6 +35,8 @@ struct PanelContentView: View {
                         TransformPickerView(viewModel: viewModel)
                     } else if isSnippetMode {
                         SnippetPickerView(viewModel: viewModel)
+                    } else if isActionMode {
+                        ActionPickerView(viewModel: viewModel)
                     } else {
                         EntryListView(viewModel: viewModel)
                     }
@@ -45,8 +47,7 @@ struct PanelContentView: View {
 
                 // Preview adapts to mode:
                 //  • snippet: live-expanded body of the selected snippet
-                //  • transform: source entry being transformed
-                //  • browse: selected entry
+                //  • transform / action / browse: the source entry
                 Group {
                     if isSnippetMode {
                         SnippetPreview(text: viewModel.previewForSelectedSnippet())
@@ -88,15 +89,22 @@ struct PanelContentView: View {
         return false
     }
 
+    private var isActionMode: Bool {
+        if case .actionPicker = viewModel.mode { return true }
+        return false
+    }
+
     private var searchIcon: String {
         if isTransformMode { return "wand.and.stars" }
         if isSnippetMode   { return "text.badge.plus" }
+        if isActionMode    { return "bolt" }
         return "magnifyingglass"
     }
 
     private var searchPlaceholder: String {
         if isTransformMode { return "Filter transforms…" }
         if isSnippetMode   { return "Find snippet…" }
+        if isActionMode    { return "Filter actions…" }
         return "Search clipboard…"
     }
 
@@ -106,6 +114,7 @@ struct PanelContentView: View {
             get: {
                 if isTransformMode { return viewModel.transformQuery }
                 if isSnippetMode   { return viewModel.snippetQuery }
+                if isActionMode    { return viewModel.actionQuery }
                 return viewModel.query
             },
             set: { newValue in
@@ -113,6 +122,8 @@ struct PanelContentView: View {
                     viewModel.transformQuery = newValue
                 } else if isSnippetMode {
                     viewModel.snippetQuery = newValue
+                } else if isActionMode {
+                    viewModel.actionQuery = newValue
                 } else {
                     viewModel.query = newValue
                 }
@@ -120,10 +131,13 @@ struct PanelContentView: View {
         )
     }
 
-    /// In transform mode, show the source entry in the preview so the user can
-    /// see what they're transforming.
+    /// In transform / action mode, show the source entry in the preview so the
+    /// user can see what they're operating on.
     private var previewEntry: ClipEntry? {
         if case .transformPicker(let source, _) = viewModel.mode {
+            return source
+        }
+        if case .actionPicker(let source, _) = viewModel.mode {
             return source
         }
         return viewModel.selectedEntry

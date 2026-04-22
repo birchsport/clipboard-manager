@@ -3,12 +3,13 @@ import Combine
 import Foundation
 
 /// The panel is a small state machine: ordinary browsing of the history, or
-/// picking a transform (`⌘T`) or snippet (`⌘S`). `savedQuery` lets Esc
-/// restore the prior browse-mode search text.
+/// picking a transform (`⌘T`), snippet (`⌘S`), or action (`⌘K`).
+/// `savedQuery` lets Esc restore the prior browse-mode search text.
 enum PanelMode: Equatable {
     case browse
     case transformPicker(source: ClipEntry, savedQuery: String)
     case snippetPicker(savedQuery: String)
+    case actionPicker(source: ClipEntry, savedQuery: String)
 }
 
 /// Backing state for `PanelContentView`. Loads entries from the repository, runs the
@@ -41,6 +42,12 @@ final class PanelViewModel: ObservableObject {
     @Published var snippetQuery: String = ""
     @Published var snippetMatches: [Snippet] = []
     @Published var snippetSelectedIndex: Int = 0
+
+    // MARK: - Action-mode state
+
+    @Published var actionQuery: String = ""
+    @Published var actionMatches: [any EntryAction] = []
+    @Published var actionSelectedIndex: Int = 0
 
     // MARK: - Quick Look
 
@@ -87,6 +94,12 @@ final class PanelViewModel: ObservableObject {
         // or edits one in Settings while the panel is open).
         services.snippetStore.$snippets
             .sink { [weak self] _ in self?.refreshSnippetMatches() }
+            .store(in: &cancellables)
+
+        // Refilter actions as the user types in action mode.
+        $actionQuery
+            .removeDuplicates()
+            .sink { [weak self] _ in self?.refreshActionMatches() }
             .store(in: &cancellables)
 
         refresh()
@@ -272,6 +285,95 @@ final class PanelViewModel: ObservableObject {
         return SnippetPlaceholders.expand(snippet.body, clipboard: clipboardText)
     }
 
+    // MARK: - Action mode
+
+    func enterActionMode() {
+        guard case .browse = mode else { return }
+        guard let entry = selectedEntry else { return }
+        // Pre-check: at least one action must be applicable. No point opening
+        // an empty picker over an image with no actions bound yet.
+        let applicable = ActionRegistry.applicable(to: entry)
+        guard !applicable.isEmpty else { return }
+
+        let savedQuery = query
+        mode = .actionPicker(source: entry, savedQuery: savedQuery)
+        actionQuery = ""
+        actionSelectedIndex = 0
+        actionMatches = applicable
+        focusRequestTick &+= 1
+    }
+
+    func exitActionMode() {
+        if case .actionPicker(_, let savedQuery) = mode {
+            query = savedQuery
+        }
+        mode = .browse
+        focusRequestTick &+= 1
+    }
+
+    private func refreshActionMatches() {
+        guard case .actionPicker(let source, _) = mode else {
+            actionMatches = []
+            return
+        }
+        let applicable = ActionRegistry.applicable(to: source)
+        let trimmed = actionQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if trimmed.isEmpty {
+            actionMatches = applicable
+        } else {
+            let scored: [(a: any EntryAction, score: Int, order: Int)] = applicable
+                .enumerated()
+                .compactMap { idx, a in
+                    guard let s = FuzzyMatcher.score(query: trimmed, candidate: a.displayName) else {
+                        return nil
+                    }
+                    return (a, s, idx)
+                }
+            actionMatches = scored
+                .sorted { a, b in
+                    if a.score != b.score { return a.score > b.score }
+                    return a.order < b.order
+                }
+                .map { $0.a }
+        }
+
+        if actionSelectedIndex >= actionMatches.count {
+            actionSelectedIndex = max(0, actionMatches.count - 1)
+        }
+    }
+
+    var selectedAction: (any EntryAction)? {
+        actionMatches.indices.contains(actionSelectedIndex)
+            ? actionMatches[actionSelectedIndex]
+            : nil
+    }
+
+    /// Run `action` against the entry we entered action mode for. The action
+    /// itself decides whether to paste or just dismiss via the `ActionContext`.
+    func applyAction(_ action: any EntryAction) {
+        guard case .actionPicker(let source, _) = mode else { return }
+        let context = ActionContext(
+            paste: { [weak self] text in
+                guard let self else { return }
+                let entry = ClipEntry(
+                    id: 0,
+                    kind: .text(text),
+                    createdAt: Date(),
+                    source: nil,
+                    pinnedAt: nil
+                )
+                self.mode = .browse
+                self.actions.paste(entry, asPlainText: false)
+            },
+            dismiss: { [weak self] in
+                self?.mode = .browse
+                self?.actions.dismiss()
+            }
+        )
+        action.perform(entry: source, context: context)
+    }
+
     /// Expand `snippet`'s placeholders against the current pasteboard and
     /// paste via the normal paste flow as a one-shot synthetic entry.
     func applySnippet(_ snippet: Snippet) {
@@ -336,6 +438,8 @@ final class PanelViewModel: ObservableObject {
             return handleTransform(event: event)
         case .snippetPicker:
             return handleSnippet(event: event)
+        case .actionPicker:
+            return handleAction(event: event)
         }
     }
 
@@ -386,6 +490,12 @@ final class PanelViewModel: ObservableObject {
         case 1: // S — ⌘S enters snippet mode
             if cmd {
                 enterSnippetMode()
+                return true
+            }
+            return false
+        case 40: // K — ⌘K enters action mode
+            if cmd {
+                enterActionMode()
                 return true
             }
             return false
@@ -444,6 +554,25 @@ final class PanelViewModel: ObservableObject {
         }
     }
 
+    private func handleAction(event: NSEvent) -> Bool {
+        switch event.keyCode {
+        case 53: // Esc
+            exitActionMode()
+            return true
+        case 125: // Down
+            moveActionSelection(+1); return true
+        case 126: // Up
+            moveActionSelection(-1); return true
+        case 36, 76: // Return
+            if let a = selectedAction {
+                applyAction(a)
+            }
+            return true
+        default:
+            return false
+        }
+    }
+
     private func moveSelection(_ delta: Int) {
         guard !entries.isEmpty else { return }
         selectedIndex = max(0, min(entries.count - 1, selectedIndex + delta))
@@ -459,6 +588,12 @@ final class PanelViewModel: ObservableObject {
         guard !snippetMatches.isEmpty else { return }
         snippetSelectedIndex = max(0, min(snippetMatches.count - 1,
                                           snippetSelectedIndex + delta))
+    }
+
+    private func moveActionSelection(_ delta: Int) {
+        guard !actionMatches.isEmpty else { return }
+        actionSelectedIndex = max(0, min(actionMatches.count - 1,
+                                         actionSelectedIndex + delta))
     }
 
     /// Physical top-row number keycodes (stable across US/AZERTY/DVORAK) →

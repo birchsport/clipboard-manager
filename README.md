@@ -27,6 +27,11 @@ falls short (nonactivating panels, global hotkeys, focus capture).
   Settings → Snippets. Supports placeholders: `{clipboard}`, `{date[:FMT]}`,
   `{time[:FMT]}`, `{uuid}`, `{newline}`, `{tab}`, plus `{{` / `}}` for
   literal braces. ⏎ expands placeholders and pastes.
+- ⌘K opens a **type-aware action picker** for the selected entry. Available
+  actions depend on the entry type: URL → Open in Browser / Paste as Markdown
+  link; files → Reveal in Finder / Open; email → Compose Mail; phone → Call
+  with FaceTime; hex color → Paste as rgb() / hsl(). Inapplicable actions
+  are hidden; ⏎ runs, Esc cancels.
 - SQLite-backed persistence (GRDB), with image blobs on disk addressed by SHA-256.
 - Configurable retention (max count, max age) with automatic hourly sweeps.
 - Respects the `nspasteboard.org` concealed/transient convention — password
