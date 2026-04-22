@@ -24,7 +24,7 @@ struct BirchboardApp: App {
                 Text("Settings…")
             }
             .simultaneousGesture(TapGesture().onEnded {
-                NSApp.activate(ignoringOtherApps: true)
+                activateAndRaiseSettingsWindow()
             })
             .keyboardShortcut(",")
             Divider()
@@ -41,6 +41,24 @@ struct BirchboardApp: App {
                 .environmentObject(appDelegate.services)
                 .environmentObject(appDelegate.services.preferences)
                 .environmentObject(appDelegate.services.snippetStore)
+        }
+    }
+
+    /// Activate the app and explicitly raise the Settings window. In macOS
+    /// 14+ from a MenuBarExtra, `SettingsLink` + `NSApp.activate` can leave
+    /// the window ordered behind other apps' windows — the user sees nothing
+    /// happen. We schedule one runloop tick later (so the window has been
+    /// created) and then `makeKeyAndOrderFront` on every non-panel window.
+    /// The clipboard panel is an NSPanel, so skipping `NSPanel` instances
+    /// leaves the Settings window as the only candidate.
+    private func activateAndRaiseSettingsWindow() {
+        NSApp.activate(ignoringOtherApps: true)
+        DispatchQueue.main.async {
+            for window in NSApp.windows
+                where !(window is NSPanel)
+                    && window.canBecomeKey {
+                window.makeKeyAndOrderFront(nil)
+            }
         }
     }
 }
