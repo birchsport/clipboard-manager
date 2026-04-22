@@ -131,7 +131,8 @@ private struct EntryListView: View {
     @ViewBuilder
     private func row(for entry: ClipEntry, index: Int) -> some View {
         let selected = index == viewModel.selectedIndex
-        EntryRow(entry: entry, isSelected: selected)
+        let shortcut = index < 9 ? "⌘\(index + 1)" : nil
+        EntryRow(entry: entry, isSelected: selected, shortcutHint: shortcut)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(selected ? Color.accentColor.opacity(0.18) : .clear)
@@ -149,6 +150,9 @@ private struct EntryListView: View {
 private struct EntryRow: View {
     let entry: ClipEntry
     let isSelected: Bool
+    /// Non-nil for the first nine entries — rendered as a small right-aligned
+    /// badge so the ⌘N quick-select is discoverable.
+    let shortcutHint: String?
 
     var body: some View {
         HStack(spacing: 8) {
@@ -175,8 +179,31 @@ private struct EntryRow: View {
                         .font(.system(size: 10))
                 }
             }
+            if let shortcutHint {
+                shortcutBadge(shortcutHint)
+            }
         }
         .padding(.vertical, 2)
+    }
+
+    /// Small right-aligned "⌘N" chip. Selected rows get a slightly stronger
+    /// tint so the badge stays legible against the accent background.
+    private func shortcutBadge(_ hint: String) -> some View {
+        Text(hint)
+            .font(.system(size: 10, weight: .medium, design: .monospaced))
+            .foregroundStyle(isSelected ? .primary : .secondary)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 2)
+            .background(
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(isSelected
+                          ? Color.white.opacity(0.15)
+                          : Color.primary.opacity(0.06))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
+            )
     }
 
     @ViewBuilder
