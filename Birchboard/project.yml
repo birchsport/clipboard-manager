@@ -66,12 +66,19 @@ targets:
         COMBINE_HIDPI_IMAGES: YES
         ENABLE_USER_SCRIPT_SANDBOXING: NO
       configs:
-        # Debug inherits the Apple Development identity from Signing.xcconfig —
-        # fine for running locally on your own Mac.
-        # Release uses Developer ID Application so the DMG can be notarized
-        # and distributed to other Macs. Requires that cert be in the keychain.
+        # Debug inherits the Apple Development identity from Signing.xcconfig
+        # with automatic signing — fine for running locally on your own Mac.
+        #
+        # Release switches to manual signing with a Developer ID Application
+        # cert so the build can be notarized and distributed to other Macs.
+        # Automatic + a specific identity is rejected by Xcode ("conflicting
+        # provisioning settings"), so we set STYLE=Manual and explicitly
+        # clear the provisioning profile — Developer ID archives don't need
+        # one.
         Release:
+          CODE_SIGN_STYLE: Manual
           CODE_SIGN_IDENTITY: "Developer ID Application"
+          PROVISIONING_PROFILE_SPECIFIER: ""
     dependencies:
       - package: KeyboardShortcuts
       - package: GRDB

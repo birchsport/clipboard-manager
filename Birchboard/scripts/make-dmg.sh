@@ -30,18 +30,38 @@ xcodegen generate >/dev/null
 
 echo "→ Archiving Release build"
 rm -rf "$ARCHIVE_PATH"
+mkdir -p build
+LOG_PATH="build/xcodebuild-archive.log"
+
+# Tee to a log file and filter common interesting lines for the terminal. Using
+# an explicit if-block so a non-zero exit from xcodebuild surfaces the tail of
+# the log — earlier versions of this script hid real errors behind a grep
+# filter that only matched lines beginning with certain tokens.
+set +e
 xcodebuild \
     -project "${APP_NAME}.xcodeproj" \
     -scheme "${APP_NAME}" \
     -configuration "${CONFIGURATION}" \
     -destination 'platform=macOS' \
     -archivePath "${ARCHIVE_PATH}" \
-    archive \
-    | grep -E "^(===|error:|warning:|\*\*|Signing Identity)" || true
+    archive > "$LOG_PATH" 2>&1
+ARCHIVE_STATUS=$?
+set -e
+
+grep -E "(===|error:|warning:|\*\*|Signing Identity)" "$LOG_PATH" || true
+
+if [[ $ARCHIVE_STATUS -ne 0 ]]; then
+    echo ""
+    echo "✗ archive failed (exit $ARCHIVE_STATUS). Tail of $LOG_PATH:"
+    echo "────────────────────────────────────────────────────────────"
+    tail -40 "$LOG_PATH"
+    echo "────────────────────────────────────────────────────────────"
+    exit 1
+fi
 
 APP_PATH="${ARCHIVE_PATH}/Products/Applications/${APP_NAME}.app"
 if [[ ! -d "$APP_PATH" ]]; then
-    echo "✗ Expected app at $APP_PATH — archive failed."
+    echo "✗ Expected app at $APP_PATH — archive reported success but produced no .app."
     exit 1
 fi
 
