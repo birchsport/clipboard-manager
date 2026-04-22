@@ -299,6 +299,38 @@ struct TrimWhitespaceTransform: TextTransform {
     }
 }
 
+/// Strips trailing whitespace from each line individually, preserving
+/// leading indentation. The common "clean up trailing spaces" editor
+/// command. Distinct from `TrimWhitespaceTransform` which trims the
+/// whole string from both ends.
+struct TrimTrailingPerLineTransform: TextTransform {
+    let id = "whitespace.rtrim_lines"
+    let displayName = "Trim trailing whitespace per line"
+
+    func isApplicable(to text: String) -> Bool {
+        // Offer only when the transform would change the payload.
+        guard let out = apply(to: text) else { return false }
+        return out != text
+    }
+
+    func apply(to text: String) -> String? {
+        text
+            .components(separatedBy: "\n")
+            .map(Self.rtrim)
+            .joined(separator: "\n")
+    }
+
+    /// Strip trailing Unicode whitespace from a single line (no newlines
+    /// expected in the input since the caller has already split).
+    private static func rtrim(_ line: String) -> String {
+        var s = line
+        while let last = s.last, last.isWhitespace {
+            s.removeLast()
+        }
+        return s
+    }
+}
+
 // MARK: - Stripping
 
 struct StripANSITransform: TextTransform {
