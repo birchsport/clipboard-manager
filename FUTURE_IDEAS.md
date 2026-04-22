@@ -35,11 +35,6 @@ Select multiple entries (`⌘`-click or marked), hit `⏎`: writes them all to t
 clipboard joined by a configurable separator (newline, comma, tab, space), then
 pastes.
 
-### Structured tree view
-Collapsible JSON / YAML / XML tree in the preview pane, with key/value colours
-and per-node copy. The existing syntax-highlighted preview already makes code
-readable; tree view makes structure navigable.
-
 ### Stack trace / file-path actions
 Detect `path/to/file.swift:42[:col]` in the selected entry and expose an
 "Open in Editor" action for VS Code / Cursor / Xcode via their URL schemes.

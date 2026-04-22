@@ -100,12 +100,32 @@ struct QuickLookView: View {
         }
     }
 
+    @ViewBuilder
     private func textView(_ s: String, entryID: Int64) -> some View {
-        ScrollView {
-            CodeHighlighter.styledText(s, entryID: entryID)
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(14)
+        // If the payload parses as structured data, default the Quick Look
+        // overlay to a collapsible tree — much easier to skim than flat
+        // JSON. Plain / non-structured text still gets the highlighted
+        // flat preview.
+        if let tree = structuredTree(for: s, entryID: entryID) {
+            TreeView(root: tree)
+        } else {
+            ScrollView {
+                CodeHighlighter.styledText(s, entryID: entryID)
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(14)
+            }
+        }
+    }
+
+    /// Return a parsed tree for JSON / YAML payloads; nil otherwise. We
+    /// lean on `LanguageDetector` to pick the format so the heuristics
+    /// stay in one place.
+    private func structuredTree(for text: String, entryID: Int64) -> TreeNode? {
+        switch LanguageDetector.detect(text, cacheKey: "ql-\(entryID)") {
+        case .json: return StructuredTreeBuilder.fromJSON(text)
+        case .yaml: return StructuredTreeBuilder.fromYAML(text)
+        default:    return nil
         }
     }
 
