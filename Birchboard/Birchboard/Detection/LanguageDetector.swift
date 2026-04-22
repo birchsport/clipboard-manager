@@ -13,6 +13,7 @@ enum DetectedLanguage: String, Hashable, CaseIterable {
     case javascript
     case typescript
     case python
+    case java
     case go
     case sql
     case shell
@@ -33,6 +34,7 @@ enum DetectedLanguage: String, Hashable, CaseIterable {
         case .javascript: return "JS"
         case .typescript: return "TS"
         case .python:     return "Python"
+        case .java:       return "Java"
         case .go:         return "Go"
         case .sql:        return "SQL"
         case .shell:      return "Shell"
@@ -69,13 +71,17 @@ enum LanguageDetector {
     }
 
     private static func detectInner(_ text: String) -> DetectedLanguage? {
-        // Order matters — more specific signatures first.
+        // Order matters — more specific signatures first. Java is checked
+        // ahead of JS/TS/Python because it shares the `class` and `import`
+        // keywords but has its own higher-confidence tells (`public class`,
+        // `System.out.println`, `package com.foo;`).
         if looksLikeJSON(text)       { return .json }
         if looksLikeDockerfile(text) { return .dockerfile }
         if looksLikeHTML(text)       { return .html }
         if looksLikeXML(text)        { return .xml }
         if looksLikeMarkdown(text)   { return .markdown }
         if looksLikeSwift(text)      { return .swift }
+        if looksLikeJava(text)       { return .java }
         if looksLikeTypeScript(text) { return .typescript }
         if looksLikeJavaScript(text) { return .javascript }
         if looksLikePython(text)     { return .python }
@@ -164,11 +170,65 @@ enum LanguageDetector {
     }
 
     private static func looksLikePython(_ s: String) -> Bool {
-        s.hasPrefix("#!/usr/bin/env python") ||
-        contains(s, any: [#"(?m)^def\s+\w+\("#, #"(?m)^class\s+\w+"#,
-                          #"(?m)^import\s+\w+"#, #"(?m)^from\s+\w+\s+import\b"#,
-                          #"\bprint\("#, #"\bif __name__\s*==\s*['\"]__main__"#,
-                          #"\bself\."#])
+        // High-confidence single signals — these are Python-specific.
+        if s.hasPrefix("#!/usr/bin/env python") { return true }
+        if s.contains("if __name__") { return true }
+        if s.range(of: #"(?m)^from\s+\w+(\.\w+)*\s+import\b"#, options: .regularExpression) != nil {
+            return true
+        }
+
+        // Lower-confidence signals: need ≥2 to qualify. `class Foo` and
+        // `import X` on their own also match Java and TS, so neither
+        // counts here.
+        var signals = 0
+        if s.range(of: #"(?m)^def\s+\w+\("#, options: .regularExpression) != nil { signals += 1 }
+        // Python `class Foo:` (trailing colon, no braces) — unlike Java.
+        if s.range(of: #"(?m)^\s*class\s+\w+[^{}\n]*:\s*$"#, options: .regularExpression) != nil {
+            signals += 1
+        }
+        // `self.` in a method, or `(self,` / `(self)` as first arg.
+        if s.range(of: #"\b\(self[,\)]"#, options: .regularExpression) != nil ||
+           s.range(of: #"(?m)^\s+self\."#, options: .regularExpression) != nil {
+            signals += 1
+        }
+        // Colon-terminated control flow (Python's block syntax).
+        if s.range(of: #"(?m)^\s*(if|elif|else|while|for|try|except|finally|with)\b[^{}\n]*:\s*$"#,
+                   options: .regularExpression) != nil {
+            signals += 1
+        }
+        // Triple-quoted strings.
+        if s.contains(#"""""#) || s.contains("'''") { signals += 1 }
+
+        return signals >= 2
+    }
+
+    private static func looksLikeJava(_ s: String) -> Bool {
+        // High-confidence single signals.
+        if s.range(of: #"\b(public|private|protected)\s+(abstract\s+|final\s+|static\s+)*class\s+\w+"#,
+                   options: .regularExpression) != nil { return true }
+        if s.contains("public static void main") { return true }
+        if s.range(of: #"(?m)^package\s+[\w.]+;\s*$"#, options: .regularExpression) != nil { return true }
+        if s.range(of: #"(?m)^import\s+(java|javax|com|org)\.[\w.]+;\s*$"#,
+                   options: .regularExpression) != nil { return true }
+        if s.contains("System.out.println") || s.contains("System.err.println") { return true }
+
+        // Medium-confidence: need ≥2 to qualify.
+        var signals = 0
+        if s.range(of: #"@[A-Z]\w+"#, options: .regularExpression) != nil { signals += 1 }
+        if s.range(of: #"\b(extends|implements)\s+[A-Z]\w*"#, options: .regularExpression) != nil { signals += 1 }
+        // A declaration like `public static ReturnType name(` is very Java-ish.
+        if s.range(of: #"(?m)^\s*(public|private|protected)\s+(static\s+|final\s+)*\w[\w<>\[\]]*\s+\w+\s*\("#,
+                   options: .regularExpression) != nil { signals += 1 }
+        if s.contains("String[] args") || s.contains("throws Exception") { signals += 1 }
+        // Semicolon-terminated lines are a strong Java (and Java-family) hint —
+        // Python doesn't use them.
+        if s.range(of: #";\s*\n"#, options: .regularExpression) != nil &&
+           s.range(of: #"\b(new|void|int|long|double|float|boolean|byte|char|short)\b"#,
+                   options: .regularExpression) != nil {
+            signals += 1
+        }
+
+        return signals >= 2
     }
 
     private static func looksLikeGo(_ s: String) -> Bool {

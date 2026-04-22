@@ -106,6 +106,7 @@ enum CodeHighlighter {
         case .xml, .html: return xmlRules
         case .javascript, .typescript: return jsRules
         case .python:     return pythonRules
+        case .java:       return javaRules
         case .go:         return goRules
         case .rust:       return rustRules
         case .ruby:       return rubyRules
@@ -164,6 +165,18 @@ enum CodeHighlighter {
         rule(#"'[^'\\\n]*(?:\\.[^'\\\n]*)*'"#, color: Palette.string),
         rule(pythonKeywords, color: Palette.keyword),
         rule(#"\b-?\d+(?:\.\d+)?\b"#, color: Palette.number),
+    ]
+
+    private static let javaKeywords = #"\b(abstract|assert|boolean|break|byte|case|catch|char|class|const|continue|default|do|double|else|enum|extends|final|finally|float|for|goto|if|implements|import|instanceof|int|interface|long|native|new|null|package|private|protected|public|return|short|static|strictfp|super|switch|synchronized|this|throw|throws|transient|try|void|volatile|while|true|false|yield|var|record|sealed|permits|non-sealed)\b"#
+    private static let javaRules: [Rule] = [
+        rule(#"//.*$"#, color: Palette.comment, options: [NSRegularExpression.Options.anchorsMatchLines]),
+        rule(#"/\*[\s\S]*?\*/"#, color: Palette.comment),
+        rule(#""[^"\\]*(?:\\.[^"\\]*)*""#, color: Palette.string),
+        rule(#"'(?:\\.|[^'])'"#, color: Palette.string),                               // char literals
+        rule(#"@[A-Z]\w*"#, color: Palette.literal),                                    // @Override, @Deprecated
+        rule(javaKeywords, color: Palette.keyword),
+        rule(#"\b[A-Z]\w*"#, color: Palette.type),                                      // type names
+        rule(#"\b-?\d+(?:\.\d+)?[fFdDlL]?\b"#, color: Palette.number),
     ]
 
     private static let goKeywords = #"\b(package|import|func|return|if|else|for|range|switch|case|default|break|continue|go|defer|chan|select|type|struct|interface|map|var|const|nil|true|false)\b"#
