@@ -1,23 +1,22 @@
 #!/usr/bin/env bash
-# Build a Release .app and package it into a DMG.
+# Build a signed (and optionally notarized) DMG.
 #
 # Usage:
-#   ./scripts/make-dmg.sh              # Release build, signed with whatever's in
-#                                      # Config/Signing.xcconfig (Apple Development
-#                                      # by default — fine for your own Mac).
+#   ./scripts/make-dmg.sh
+#       Build a Release DMG signed with whatever identity the Release config
+#       selects from your keychain (Developer ID Application by default).
+#       No notarization — fine for use on your own Mac, will be blocked by
+#       Gatekeeper on other Macs.
 #
-# Output:
-#   build/ClipHistory.dmg
+#   NOTARY_PROFILE=notarytool-clip ./scripts/make-dmg.sh
+#       Same, but after building, codesign the DMG, submit it to Apple's
+#       notary service, wait for approval, and staple the ticket so it
+#       validates offline. The resulting DMG is safe to send to other Macs.
 #
-# Notes on distribution:
-#   - Apple Development signing is enough for running on your own Mac.
-#   - To distribute to other Macs without Gatekeeper blocking, you need a
-#     "Developer ID Application" certificate and `xcrun notarytool submit` to
-#     notarize, then `xcrun stapler staple` to attach the notarization. That
-#     path is out of scope for this script.
+# See RELEASE.md for the one-time setup (getting a Developer ID cert,
+# creating the app-specific password, storing it as NOTARY_PROFILE).
 set -euo pipefail
 
-# Move to the project root (one level up from this script).
 cd "$(dirname "$0")/.."
 
 APP_NAME="ClipHistory"
@@ -62,6 +61,30 @@ hdiutil create \
     "$DMG_PATH" >/dev/null
 
 rm -rf "$DMG_STAGING"
+
+if [[ -n "${NOTARY_PROFILE:-}" ]]; then
+    # Sign the DMG with the same Developer ID identity as the app. codesign
+    # resolves "Developer ID Application" by prefix when a single matching
+    # certificate is in the keychain; if you have multiple, pass the full
+    # identity string via SIGN_IDENTITY.
+    SIGN_ID="${SIGN_IDENTITY:-Developer ID Application}"
+    echo "→ Signing DMG (${SIGN_ID})"
+    codesign --force --sign "$SIGN_ID" --timestamp "$DMG_PATH"
+
+    echo "→ Notarizing (profile: ${NOTARY_PROFILE}). This can take 1–5 minutes."
+    xcrun notarytool submit "$DMG_PATH" \
+        --keychain-profile "$NOTARY_PROFILE" \
+        --wait
+
+    echo "→ Stapling notarization ticket"
+    xcrun stapler staple "$DMG_PATH"
+
+    echo "→ Verifying Gatekeeper acceptance"
+    spctl --assess --type open --context context:primary-signature --verbose "$DMG_PATH" || true
+else
+    echo "ℹ Skipping notarization (NOTARY_PROFILE not set). The DMG will"
+    echo "  work on your Mac but Gatekeeper will block it on others."
+fi
 
 echo "✓ DMG built: $DMG_PATH"
 ls -lh "$DMG_PATH"

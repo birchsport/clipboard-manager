@@ -65,6 +65,13 @@ targets:
         CODE_SIGN_ENTITLEMENTS: ClipHistory/ClipHistory.entitlements
         COMBINE_HIDPI_IMAGES: YES
         ENABLE_USER_SCRIPT_SANDBOXING: NO
+      configs:
+        # Debug inherits the Apple Development identity from Signing.xcconfig —
+        # fine for running locally on your own Mac.
+        # Release uses Developer ID Application so the DMG can be notarized
+        # and distributed to other Macs. Requires that cert be in the keychain.
+        Release:
+          CODE_SIGN_IDENTITY: "Developer ID Application"
     dependencies:
       - package: KeyboardShortcuts
       - package: GRDB

@@ -86,6 +86,18 @@ properly-signed build:
 You only need to do this once — subsequent signed rebuilds reuse the same
 identity and TCC remembers the grant.
 
+## Distributing to other Macs
+
+See [`RELEASE.md`](RELEASE.md) for the full notarized-DMG workflow.
+Short version:
+
+```sh
+NOTARY_PROFILE=notarytool-clip ./scripts/make-dmg.sh
+```
+
+(requires one-time setup of a Developer ID Application certificate and
+a `notarytool` keychain profile — also documented in `RELEASE.md`.)
+
 ## Permissions
 
 - **Accessibility** — required so the app can post a synthetic ⌘V into the
