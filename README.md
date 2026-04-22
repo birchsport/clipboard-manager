@@ -46,6 +46,8 @@ falls short (nonactivating panels, global hotkeys, focus capture).
   back. Dedup by content hash means re-importing is a no-op.
 - Optional "restore previous clipboard after paste" so history isn't disturbed by
   its own use.
+- **Adjustable panel opacity** (slider, 30–100%) and **launch at login** in
+  Settings → General.
 
 ## Build
 
@@ -134,21 +136,36 @@ Delete both to fully reset the app.
 ```
 Birchboard/
 ├── project.yml                         # xcodegen spec
-├── Birchboard.xcodeproj               # generated
+├── Config/Signing.xcconfig*            # local Team ID override
+├── scripts/make-dmg.sh                 # Release build + optional notarization
+├── Birchboard.xcodeproj                # generated
 └── Birchboard/
     ├── App/                            # @main, AppDelegate, status bar
     ├── Panel/                          # NSPanel shell + SwiftUI content
     ├── Clipboard/                      # watcher / reader / writer / filter
     ├── Model/                          # ClipEntry, EntryKind, SourceApp
-    ├── Storage/                        # GRDB database + repository + blob store
+    ├── Storage/                        # GRDB database + repository + archive
     ├── Search/                         # FuzzyMatcher
+    ├── Transforms/                     # ⌘T: TextTransform + registry + built-ins
+    ├── Snippets/                       # ⌘S: Snippet + store + placeholders
+    ├── Actions/                        # ⌘K: EntryAction + registry + built-ins
     ├── Settings/                       # SwiftUI settings window + Preferences
     ├── Util/                           # AX permission, SHA-256, hotkey names
     ├── Info.plist                      # generated (LSUIElement=true)
-    └── Birchboard.entitlements        # generated (sandbox off)
+    └── Birchboard.entitlements         # generated (sandbox off)
 ```
 
-## Not in v1
+## Planned but not yet built
 
-iCloud sync, snippet expansion, OCR, per-app paste rules. The data model has
-room to grow in these directions; no need to build them yet.
+- **Auto-expanding snippets** — type a trigger (e.g. `;sig`) anywhere and
+  have it expand inline, the way TextExpander / Alfred snippets work.
+  Requires a global keystroke monitor (AX-trust-bound), deferred.
+- **OCR on image entries** — run `VNRecognizeTextRequest` against a
+  captured image and drop the text onto the clipboard.
+- **iCloud / LAN sync** across your own Macs.
+- **Scoped clipboard profiles** — separate histories for "work" and
+  "personal", switched manually or by active app.
+- **Per-app paste rules** — e.g. always paste plain into Slack.
+
+See [`FUTURE_IDEAS.md`](FUTURE_IDEAS.md) for the full shortlist with
+notes on effort and design.
