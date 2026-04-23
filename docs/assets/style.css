@@ -178,12 +178,14 @@ kbd {
 
 .screenshot {
     margin: 48px 0 8px;
+    text-align: center;
 }
 
 .screenshot img {
     width: 100%;
+    max-width: 680px;
     height: auto;
-    display: block;
+    display: inline-block;
     border-radius: 10px;
     border: 1px solid var(--border);
     box-shadow:
@@ -197,6 +199,10 @@ kbd {
             0 12px 36px rgba(0, 0, 0, 0.12),
             0 2px 8px rgba(0, 0, 0, 0.06);
     }
+}
+
+@media (max-width: 640px) {
+    .screenshot img { max-width: 100%; }
 }
 
 /* ---------- Sections ------------------------------------------------- */
