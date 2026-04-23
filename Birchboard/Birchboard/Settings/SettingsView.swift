@@ -13,8 +13,9 @@ struct SettingsView: View {
             HotkeyTab().tabItem { Label("Hotkey", systemImage: "command") }
             SnippetsTab().tabItem { Label("Snippets", systemImage: "text.badge.plus") }
             PrivacyTab().tabItem { Label("Privacy", systemImage: "lock") }
+            HelpTab().tabItem { Label("Help", systemImage: "questionmark.circle") }
         }
-        .frame(width: 620, height: 420)
+        .frame(width: 620, height: 480)
     }
 }
 
