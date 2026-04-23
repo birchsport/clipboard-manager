@@ -222,14 +222,30 @@ jobs:
           git fetch origin main --depth=1
           if git cat-file -e origin/main:docs/appcast.xml 2>/dev/null; then
             git show origin/main:docs/appcast.xml > "$STAGED"
-            python3 - "$ITEM" "$STAGED" <<'PY'
-          import re, sys, pathlib
+            VERSION="$VERSION" python3 - "$ITEM" "$STAGED" <<'PY'
+          import os, re, sys, pathlib
           item, path = sys.argv[1], pathlib.Path(sys.argv[2])
+          version = os.environ["VERSION"]
           xml = path.read_text()
-          # Insert after the <channel …> opening tag.
+
+          # Idempotent: if an <item> already exists for this version,
+          # drop it so the fresh one replaces it (re-running a release
+          # workflow must not produce duplicate entries).
+          xml = re.sub(
+              r"\s*<item>(?:(?!</item>).)*?<sparkle:version>"
+              + re.escape(version)
+              + r"</sparkle:version>.*?</item>\s*",
+              "\n        ",
+              xml,
+              count=1,
+              flags=re.DOTALL,
+          )
+
+          # Insert the new item just before </channel> so channel
+          # metadata stays above items.
           new = re.sub(
-              r"(<channel[^>]*>)",
-              r"\1\n" + item,
+              r"(\s*)(</channel>)",
+              "\n" + item + r"\1\2",
               xml,
               count=1,
           )
