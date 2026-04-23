@@ -27,6 +27,9 @@ struct BirchboardApp: App {
                 activateAndRaiseSettingsWindow()
             })
             .keyboardShortcut(",")
+            Button("Check for Updates…") {
+                appDelegate.services.updater.checkForUpdates()
+            }
             Button("About Birchboard") {
                 showAboutPanel()
             }
@@ -44,6 +47,7 @@ struct BirchboardApp: App {
                 .environmentObject(appDelegate.services)
                 .environmentObject(appDelegate.services.preferences)
                 .environmentObject(appDelegate.services.snippetStore)
+                .environmentObject(appDelegate.services.updater)
         }
     }
 

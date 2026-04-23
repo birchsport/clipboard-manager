@@ -21,6 +21,7 @@ struct SettingsView: View {
 
 private struct GeneralTab: View {
     @EnvironmentObject var preferences: Preferences
+    @EnvironmentObject var updater: UpdaterController
     @State private var launchAtLoginError: String?
 
     var body: some View {
@@ -64,9 +65,34 @@ private struct GeneralTab: View {
                     Slider(value: $preferences.panelOpacity, in: 0.3...1.0)
                 }
             }
+            Section("Updates") {
+                Toggle("Automatically check for updates",
+                       isOn: $updater.automaticallyChecks)
+                Text("Check interval: every 24 hours")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                HStack {
+                    Button("Check Now") { updater.checkForUpdates() }
+                        .disabled(!updater.canCheck)
+                    Spacer()
+                }
+                Text(updatesFooter)
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
         }
         .formStyle(.grouped)
         .padding()
+    }
+
+    private var updatesFooter: String {
+        let version = "Current version \(updater.currentVersion)"
+        guard let last = updater.lastCheckDate else {
+            return "\(version) · never checked"
+        }
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        return "\(version) · last checked \(formatter.localizedString(for: last, relativeTo: Date()))"
     }
 
     /// Returns true iff the change was accepted by SMAppService. Unsigned dev builds

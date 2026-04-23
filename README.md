@@ -59,6 +59,9 @@ falls short (nonactivating panels, global hotkeys, focus capture).
   its own use.
 - **Adjustable panel opacity** (slider, 30–100%) and **launch at login** in
   Settings → General.
+- **Auto-updates via [Sparkle](https://sparkle-project.org)** — background
+  check every 24 hours, manual "Check for Updates…" in the menu-bar, feed
+  hosted on GitHub Pages. Updates are EdDSA-signed and notarized.
 
 ## Build
 

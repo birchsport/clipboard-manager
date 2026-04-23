@@ -130,6 +130,11 @@ contain a URL/email/etc.).
   entry doesn't disturb your current clipboard.
 - **Launch at login** — via `SMAppService`.
 - **Custom global hotkey** — standard shortcut recorder (default ⌘⇧V).
+- **Automatic updates** via [Sparkle](https://sparkle-project.org). Default
+  24-hour background check; **Check Now** button and a toggle live in
+  Settings → General → Updates. Also exposed as **Check for Updates…** in
+  the menu-bar menu. Updates are EdDSA-signed and served from a GitHub
+  Pages appcast.
 
 ## Privacy & storage (Settings → Privacy)
 

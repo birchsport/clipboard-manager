@@ -60,6 +60,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 final class Services: ObservableObject {
     let preferences = Preferences()
     let snippetStore = SnippetStore()
+    let updater = UpdaterController()
     private(set) var database: Database!
     private(set) var repository: EntryRepository!
     private(set) var blobStore: BlobStore!

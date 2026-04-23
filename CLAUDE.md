@@ -92,6 +92,12 @@ Adding a new transform, action, or snippet placeholder is a one-file change — 
 
 Adding a language = extend the `DetectedLanguage` enum + add a `looksLike…` case + add a rule set. Two matching additions, ~20 LOC.
 
+### Auto-updates (Sparkle)
+
+**`Updater/UpdaterController.swift`** wraps `SPUStandardUpdaterController` and lives on `Services`. Feed URL (`SUFeedURL`), public EdDSA key (`SUPublicEDKey`), 24-hour interval, and auto-check default are in `project.yml`'s Info.plist properties. The Settings General tab exposes a toggle, a Check Now button, and a version/last-check footer; the menu-bar menu has a "Check for Updates…" item.
+
+Releases are built and signed by `.github/workflows/release.yml` on any `v*.*.*` tag push: it sets up a temporary keychain from the Developer ID `.p12`, runs `scripts/make-dmg.sh`, signs the DMG with Sparkle's `sign_update`, generates/appends an `<item>` to `docs/appcast.xml` (committed back to main), and publishes a GitHub Release. Seven repo secrets are required: `DEVELOPER_ID_P12_BASE64`, `DEVELOPER_ID_P12_PASSWORD`, `KEYCHAIN_PASSWORD`, `APPLE_ID`, `APPLE_TEAM_ID`, `APPLE_APP_PASSWORD`, `SPARKLE_ED_PRIVATE_KEY`.
+
 ### Storage
 
 `Storage/` uses GRDB:
