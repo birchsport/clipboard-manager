@@ -20,5 +20,20 @@
                 type="application/octet-stream"
             />
         </item>
+    <item>
+        <title>Version 0.2.1</title>
+        <pubDate>Thu, 23 Apr 2026 15:03:56 +0000</pubDate>
+        <sparkle:version>0.2.1</sparkle:version>
+        <sparkle:shortVersionString>0.2.1</sparkle:shortVersionString>
+        <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+        <link>https://github.com/birchsport/clipboard-manager/releases/tag/v0.2.1</link>
+        <description><![CDATA[See the <a href="https://github.com/birchsport/clipboard-manager/releases/tag/v0.2.1">release notes on GitHub</a>.]]></description>
+        <enclosure
+            url="https://github.com/birchsport/clipboard-manager/releases/download/v0.2.1/Birchboard-0.2.1.dmg"
+            sparkle:edSignature="Rn/J6rIw0FXeCSf6osZRhoyIMNH44ZX8nkmIvlMe/8ZK4JYK0bqtejKaZ52q+gIJOUgn+WYHrjPeoLx3rWXtBw=="
+            length="5106284"
+            type="application/octet-stream"
+        />
+    </item>
     </channel>
 </rss>
