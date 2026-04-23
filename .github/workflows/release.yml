@@ -45,8 +45,18 @@ jobs:
         id: version
         run: |
           VERSION="${TAG#v}"
+          # Sparkle compares <sparkle:version> (a monotonic integer) against
+          # the installed CFBundleVersion, not the marketing string. Pull
+          # CURRENT_PROJECT_VERSION straight out of project.yml so the feed
+          # and the bundle agree.
+          BUILD=$(awk '/CURRENT_PROJECT_VERSION:/ {gsub(/"/, "", $2); print $2; exit}' Birchboard/project.yml)
+          if [ -z "$BUILD" ]; then
+            echo "Could not read CURRENT_PROJECT_VERSION from Birchboard/project.yml"
+            exit 1
+          fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Deriving release for version $VERSION"
+          echo "build=$BUILD" >> "$GITHUB_OUTPUT"
+          echo "Deriving release for version $VERSION (build $BUILD)"
 
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
@@ -186,7 +196,7 @@ jobs:
         id: appcast
         env:
           VERSION: ${{ steps.version.outputs.version }}
-          BUILD: ${{ steps.version.outputs.version }}
+          BUILD: ${{ steps.version.outputs.build }}
           DMG_FILENAME: ${{ steps.dmg.outputs.filename }}
           DMG_SIZE: ${{ steps.dmg.outputs.size }}
           SIGNATURE: ${{ steps.sparkle.outputs.signature }}
