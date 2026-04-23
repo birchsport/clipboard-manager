@@ -131,7 +131,28 @@ jobs:
           # make-dmg.sh consults NOTARY_PROFILE; it expects the keychain to
           # be unlocked and the Developer ID identity to be resolvable —
           # both true after the import step above.
-          ./scripts/make-dmg.sh
+          # Capture stdout so a failed notarization still lets us pull
+          # the submission id for the log step.
+          set -o pipefail
+          ./scripts/make-dmg.sh 2>&1 | tee "$RUNNER_TEMP/makedmg.log"
+
+      - name: Dump notarization log on failure
+        if: failure()
+        env:
+          KEYCHAIN_PATH: ${{ runner.temp }}/build.keychain-db
+        run: |
+          LOG="$RUNNER_TEMP/makedmg.log"
+          [ -f "$LOG" ] || { echo "no makedmg.log"; exit 0; }
+          SUBID=$(grep -oE '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' "$LOG" | head -1)
+          if [ -z "$SUBID" ]; then
+            echo "No notarization submission id found in makedmg.log"
+            exit 0
+          fi
+          echo "Fetching log for notary submission $SUBID"
+          xcrun notarytool log "$SUBID" \
+              --keychain-profile ci-notary \
+              --keychain "$KEYCHAIN_PATH" \
+              /dev/stdout || true
 
       - name: Rename DMG with version
         id: dmg
