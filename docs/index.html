@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Birchboard — a macOS clipboard manager for people who code</title>
+  <meta
+    name="description"
+    content="Birchboard is a native macOS clipboard history manager. Fuzzy search, 27 transforms (JSON / YAML / JWT / hashes / timestamps / …), user-authored snippets with placeholders, type-aware actions, syntax-highlighted previews, and a tree view for structured data. Free and open source under MIT."
+  />
+  <meta property="og:title" content="Birchboard" />
+  <meta
+    property="og:description"
+    content="A native macOS clipboard manager for people who work with code."
+  />
+  <meta name="theme-color" content="#0f1310" />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<header class="hero">
+  <div class="container">
+    <h1 class="wordmark">Birchboard</h1>
+    <p class="tagline">A clipboard history manager for macOS, built for people who work with code.</p>
+    <p class="lede">
+      Hit a global hotkey anywhere, pick an entry, paste. Along the way, pretty-print
+      JSON, decode a JWT, flip a timestamp, hash a string, browse nested data as a tree,
+      or drop in a snippet with <code>{clipboard}</code> / <code>{date}</code> tokens.
+      All keyboard-first, local-only, and free.
+    </p>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/birchsport/clipboard-manager/releases" rel="noopener">Download</a>
+      <a class="btn" href="https://github.com/birchsport/clipboard-manager" rel="noopener">Source on GitHub</a>
+    </div>
+    <p class="meta">
+      macOS 14 (Sonoma) or later &middot; Apple Silicon / Intel &middot; free &middot;
+      open source under <a href="https://github.com/birchsport/clipboard-manager/blob/main/LICENSE" rel="noopener">MIT</a>
+    </p>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- Screenshot slot — replace with an image tag later -->
+  <figure class="screenshot placeholder" aria-hidden="true">
+    <div class="screenshot-inner">
+      <span class="placeholder-label">screenshot here</span>
+    </div>
+  </figure>
+
+  <!-- Quick hits ------------------------------------------------------ -->
+  <section>
+    <h2>At a glance</h2>
+    <ul class="highlights">
+      <li><strong>⌘⇧V</strong> anywhere opens a floating panel over any app, including fullscreen.</li>
+      <li><strong>fzf-style fuzzy search</strong> — word-boundary, consecutive-match, camelCase bonuses.</li>
+      <li><strong>27 transforms</strong> reachable with <strong>⌘T</strong>.</li>
+      <li><strong>User-authored snippets</strong> with <code>{clipboard}</code> / <code>{date}</code> / <code>{uuid}</code> placeholders.</li>
+      <li><strong>Type-aware actions</strong> with <strong>⌘K</strong> — open URL, reveal file, compose mail, call phone, paste hex as rgb().</li>
+      <li><strong>Syntax-highlighted previews</strong> for 17 languages, plus a collapsible <strong>tree view</strong> for JSON / YAML / XML in Quick Look.</li>
+      <li><strong>Local, private</strong> — no cloud, no analytics, no telemetry.</li>
+    </ul>
+  </section>
+
+  <!-- Features -------------------------------------------------------- -->
+  <section>
+    <h2>Features</h2>
+
+    <div class="feature-grid">
+
+      <article class="feature">
+        <h3>Capture</h3>
+        <p>Text, RTF, images, and file references, with the source app remembered.</p>
+        <ul>
+          <li>Ignore list (Settings → Privacy) skips capture while password-manager apps are frontmost; ships with 1Password 7/8, Bitwarden, Keychain Access, Apple Passwords, LastPass, and KeePassXC as defaults.</li>
+          <li>Respects the <code>org.nspasteboard.ConcealedType</code> / <code>TransientType</code> convention.</li>
+          <li>Retention sweeps (count + age) run on launch and hourly. Pinned entries never expire.</li>
+        </ul>
+      </article>
+
+      <article class="feature">
+        <h3>Browsing</h3>
+        <ul>
+          <li>Fuzzy search as you type.</li>
+          <li>Type-keyword search — <code>image</code> finds image entries, <code>file</code> finds file references, <code>400x300</code> finds that specific image.</li>
+          <li><kbd>⌘1</kbd> – <kbd>⌘9</kbd> quick-pastes the Nth visible entry; the first nine rows show their shortcut inline.</li>
+          <li>Code rows get a language chip. 17 detected: JSON, YAML, XML, HTML, Markdown, Swift, Java, JavaScript, TypeScript, Python, Go, Rust, Ruby, SQL, Shell, Dockerfile, CSS.</li>
+          <li><kbd>⌘P</kbd> to pin, <kbd>⌘⌫</kbd> to delete.</li>
+        </ul>
+      </article>
+
+      <article class="feature">
+        <h3>Previews &amp; Quick Look</h3>
+        <ul>
+          <li>Live preview pane with syntax highlighting for any detected language.</li>
+          <li><kbd>⌘Y</kbd> pops a full-panel Quick Look overlay — full-size images, scrollable code, file paths with icons.</li>
+          <li>JSON, YAML, and XML entries get a <strong>collapsible tree view</strong> instead of flat text: keys, typed values, array indices, XML elements, attributes, and text nodes, all coloured consistently. Each subtree's expansion is independent.</li>
+        </ul>
+      </article>
+
+      <article class="feature">
+        <h3><kbd>⌘T</kbd> &mdash; Transforms</h3>
+        <p>Rewrite the clipboard payload before it pastes. Inapplicable transforms are hidden upfront; fuzzy-filter by name.</p>
+        <ul>
+          <li><strong>JSON</strong> &mdash; pretty-print, minify.</li>
+          <li><strong>JSON ↔ YAML</strong> &mdash; auto-direction.</li>
+          <li><strong>JWT</strong> &mdash; decode to pretty-printed header + payload.</li>
+          <li><strong>Timestamp</strong> &mdash; Unix ↔ ISO 8601 (10- or 13-digit input).</li>
+          <li><strong>Hashes</strong> &mdash; SHA-256, SHA-1, MD5.</li>
+          <li><strong>Number bases</strong> &mdash; dec / hex / bin simultaneously.</li>
+          <li><strong>Query string ↔ JSON</strong>.</li>
+          <li><strong>Encoding</strong> &mdash; Base64, URL.</li>
+          <li><strong>Case</strong> &mdash; UPPER / lower / Title / camel / snake / kebab.</li>
+          <li><strong>Trim</strong> &mdash; whole-string, per-line trailing, or per-line both ends.</li>
+          <li><strong>Strip</strong> &mdash; ANSI escape codes, HTML tags.</li>
+          <li><strong>Extract</strong> &mdash; all URLs, all email addresses.</li>
+        </ul>
+      </article>
+
+      <article class="feature">
+        <h3><kbd>⌘S</kbd> &mdash; Snippets</h3>
+        <p>Author canned text in Settings → Snippets; expand placeholders at paste time.</p>
+        <dl class="placeholders">
+          <dt><code>{clipboard}</code></dt> <dd>Current pasteboard text.</dd>
+          <dt><code>{date}</code> &middot; <code>{date:FMT}</code></dt> <dd>Today, formatted with any <code>DateFormatter</code> template.</dd>
+          <dt><code>{time}</code> &middot; <code>{time:FMT}</code></dt> <dd>Now, same.</dd>
+          <dt><code>{uuid}</code></dt> <dd>A fresh UUID each expansion.</dd>
+          <dt><code>{newline}</code> &middot; <code>{tab}</code></dt> <dd>Literal escapes.</dd>
+          <dt><code>{{</code> &middot; <code>}}</code></dt> <dd>Literal braces.</dd>
+        </dl>
+        <p class="subtle">Unknown tokens pass through unchanged.</p>
+      </article>
+
+      <article class="feature">
+        <h3><kbd>⌘K</kbd> &mdash; Actions</h3>
+        <p>Type-specific shortcuts for the selected entry. Only applicable actions show up.</p>
+        <ul>
+          <li><strong>URL</strong> &rarr; Open in Browser, Paste as Markdown link</li>
+          <li><strong>File(s)</strong> &rarr; Reveal in Finder, Open</li>
+          <li><strong>Email</strong> &rarr; Compose Mail to…</li>
+          <li><strong>Phone</strong> &rarr; Call with FaceTime</li>
+          <li><strong>Hex color</strong> &rarr; Paste as <code>rgb()</code>, <code>hsl()</code></li>
+        </ul>
+      </article>
+
+      <article class="feature">
+        <h3>Preferences</h3>
+        <ul>
+          <li>Retention — cap history by count (default 1000) and age (default 90 days); pinned entries exempt.</li>
+          <li>Panel opacity slider (30–100%).</li>
+          <li>"Restore previous clipboard after paste" so using history doesn't disturb your current copy.</li>
+          <li>Launch at login.</li>
+          <li>Custom global hotkey via the standard shortcut recorder.</li>
+        </ul>
+      </article>
+
+      <article class="feature">
+        <h3>Privacy &amp; storage</h3>
+        <ul>
+          <li>Everything local. No cloud, no analytics, no telemetry.</li>
+          <li>SQLite + content-addressed image blobs at <code>~/Library/Application Support/Birchboard/</code>.</li>
+          <li>Clear unpinned / clear all from Settings → Privacy.</li>
+          <li>Export / Import — the whole history (images included) as a single JSON file. Re-importing is dedup-safe.</li>
+        </ul>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- Keyboard cheat sheet ------------------------------------------- -->
+  <section>
+    <h2>Keyboard</h2>
+    <p class="subtle">While the panel is open:</p>
+    <table class="shortcuts">
+      <tbody>
+        <tr><td><kbd>⌘⇧V</kbd></td><td>Open / close the panel</td></tr>
+        <tr><td><kbd>↑</kbd> <kbd>↓</kbd></td><td>Navigate entries</td></tr>
+        <tr><td><kbd>⏎</kbd></td><td>Paste selected entry</td></tr>
+        <tr><td><kbd>⇧⏎</kbd></td><td>Paste as plain text</td></tr>
+        <tr><td><kbd>⌘1</kbd> – <kbd>⌘9</kbd></td><td>Quick-paste Nth visible entry</td></tr>
+        <tr><td><kbd>⇧⌘1</kbd> – <kbd>⇧⌘9</kbd></td><td>Quick-paste Nth as plain text</td></tr>
+        <tr><td><kbd>⌘T</kbd></td><td>Transform picker</td></tr>
+        <tr><td><kbd>⌘S</kbd></td><td>Snippet picker</td></tr>
+        <tr><td><kbd>⌘K</kbd></td><td>Action picker</td></tr>
+        <tr><td><kbd>⌘Y</kbd></td><td>Quick Look preview overlay</td></tr>
+        <tr><td><kbd>⌘P</kbd></td><td>Pin / unpin selected</td></tr>
+        <tr><td><kbd>⌘⌫</kbd></td><td>Delete selected</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>Close overlay or dismiss panel</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Install --------------------------------------------------------- -->
+  <section>
+    <h2>Install</h2>
+    <ol>
+      <li>Download the latest DMG from the <a href="https://github.com/birchsport/clipboard-manager/releases" rel="noopener">Releases page</a>.</li>
+      <li>Drag Birchboard to <code>/Applications</code>.</li>
+      <li>Launch. The first time you trigger a paste, macOS will prompt for Accessibility access — grant it in <em>System Settings → Privacy &amp; Security → Accessibility</em>. This is required so Birchboard can synthesise <kbd>⌘V</kbd> in the app you had focused before.</li>
+    </ol>
+    <p class="subtle">
+      Birchboard is a background agent — no Dock icon. Look for the clipboard
+      icon in the menu bar. Right-click it for Settings, About, or Quit.
+    </p>
+    <p>
+      Prefer to build from source? Clone
+      <a href="https://github.com/birchsport/clipboard-manager" rel="noopener">the repo</a>
+      and follow the README.
+    </p>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <p>
+      Birchboard is © 2026 James Birchfield, released under the
+      <a href="https://github.com/birchsport/clipboard-manager/blob/main/LICENSE" rel="noopener">MIT License</a>.
+    </p>
+    <p>
+      <a href="mailto:birch@birchsport.net">birch@birchsport.net</a>
+      &middot;
+      <a href="https://birchsport.net" rel="noopener">birchsport.net</a>
+      &middot;
+      <a href="https://github.com/birchsport/clipboard-manager" rel="noopener">GitHub</a>
+    </p>
+    <p class="tagline-small"><em>No discomfort, no expansion.</em></p>
+  </div>
+</footer>
+
+</body>
+</html>
