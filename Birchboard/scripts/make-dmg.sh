@@ -25,6 +25,7 @@ CONFIGURATION="Release"
 ARCHIVE_PATH="build/${APP_NAME}.xcarchive"
 DMG_STAGING="build/dmg-staging"
 DMG_PATH="build/${APP_NAME}.dmg"
+SIGN_ID="${SIGN_IDENTITY:-Developer ID Application}"
 
 echo "→ Regenerating Xcode project"
 xcodegen generate >/dev/null
@@ -66,6 +67,51 @@ if [[ ! -d "$APP_PATH" ]]; then
     exit 1
 fi
 
+# ---------------------------------------------------------------------
+# Re-sign Sparkle's nested binaries.
+# ---------------------------------------------------------------------
+# Sparkle 2 distributes as an XCFramework with its XPC services and helper
+# binaries pre-signed by the Sparkle Project. xcodebuild archive re-signs
+# the outer Sparkle.framework wrapper but leaves the nested binaries with
+# their original signatures, so the notary service rejects them with
+# "The binary is not signed with a valid Developer ID certificate" and
+# "The signature does not include a secure timestamp."
+#
+# Fix: walk the known nested bundle/binary paths and re-sign each with our
+# Developer ID + --timestamp + hardened runtime. Order matters — sign
+# deepest children first so outer wrappers include the new inner hashes
+# when we sign them in turn.
+SPARKLE_BASE="$APP_PATH/Contents/Frameworks/Sparkle.framework/Versions/B"
+if [[ -d "$SPARKLE_BASE" ]]; then
+    echo "→ Re-signing nested Sparkle binaries with $SIGN_ID"
+    for nested in \
+        "$SPARKLE_BASE/XPCServices/Downloader.xpc" \
+        "$SPARKLE_BASE/XPCServices/Installer.xpc" \
+        "$SPARKLE_BASE/Autoupdate" \
+        "$SPARKLE_BASE/Updater.app"; do
+        if [[ -e "$nested" ]]; then
+            codesign --force \
+                --sign "$SIGN_ID" \
+                --timestamp \
+                --options runtime \
+                --preserve-metadata=identifier,entitlements \
+                "$nested"
+        fi
+    done
+    # Re-sign the Sparkle.framework wrapper so its new hash tree matches
+    # the nested bundles we just touched.
+    codesign --force --sign "$SIGN_ID" --timestamp --options runtime \
+        "$APP_PATH/Contents/Frameworks/Sparkle.framework"
+    # And finally the app itself — its code-directory hash covers
+    # Sparkle.framework, which just changed.
+    codesign --force --sign "$SIGN_ID" --timestamp --options runtime \
+        --preserve-metadata=entitlements \
+        "$APP_PATH"
+    # Sanity: verify the fully-signed app before we bother building a
+    # DMG and submitting to notarization.
+    codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+fi
+
 echo "→ Preparing DMG staging directory"
 rm -rf "$DMG_STAGING"
 mkdir -p "$DMG_STAGING"
@@ -88,7 +134,6 @@ if [[ -n "${NOTARY_PROFILE:-}" ]]; then
     # resolves "Developer ID Application" by prefix when a single matching
     # certificate is in the keychain; if you have multiple, pass the full
     # identity string via SIGN_IDENTITY.
-    SIGN_ID="${SIGN_IDENTITY:-Developer ID Application}"
     echo "→ Signing DMG (${SIGN_ID})"
     codesign --force --sign "$SIGN_ID" --timestamp "$DMG_PATH"
 
