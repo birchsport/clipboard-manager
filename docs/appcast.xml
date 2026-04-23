@@ -8,7 +8,7 @@
         <item>
             <title>Version 0.2.0</title>
             <pubDate>Thu, 23 Apr 2026 14:48:01 +0000</pubDate>
-            <sparkle:version>0.2.0</sparkle:version>
+            <sparkle:version>2</sparkle:version>
             <sparkle:shortVersionString>0.2.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <link>https://github.com/birchsport/clipboard-manager/releases/tag/v0.2.0</link>
@@ -23,7 +23,7 @@
     <item>
         <title>Version 0.2.1</title>
         <pubDate>Thu, 23 Apr 2026 15:03:56 +0000</pubDate>
-        <sparkle:version>0.2.1</sparkle:version>
+        <sparkle:version>3</sparkle:version>
         <sparkle:shortVersionString>0.2.1</sparkle:shortVersionString>
         <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
         <link>https://github.com/birchsport/clipboard-manager/releases/tag/v0.2.1</link>
