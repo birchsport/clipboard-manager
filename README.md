@@ -233,3 +233,15 @@ Birchboard/
 
 See [`FUTURE_IDEAS.md`](FUTURE_IDEAS.md) for the full shortlist with
 notes on effort and design.
+
+## License
+
+Birchboard is released under the [MIT License](LICENSE).
+
+Third-party dependencies — [KeyboardShortcuts][ks], [GRDB.swift][grdb],
+[Splash][splash], and [Yams][yams] — are also MIT-licensed.
+
+[ks]:     https://github.com/sindresorhus/KeyboardShortcuts
+[grdb]:   https://github.com/groue/GRDB.swift
+[splash]: https://github.com/JohnSundell/Splash
+[yams]:   https://github.com/jpsim/Yams
