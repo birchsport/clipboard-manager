@@ -174,28 +174,29 @@ kbd {
     margin: 0;
 }
 
-/* ---------- Screenshot placeholder ----------------------------------- */
+/* ---------- Screenshot ------------------------------------------------ */
 
 .screenshot {
     margin: 48px 0 8px;
 }
 
-.screenshot.placeholder .screenshot-inner {
-    height: 360px;
-    background: var(--bg-panel);
-    border: 1px dashed var(--border);
+.screenshot img {
+    width: 100%;
+    height: auto;
+    display: block;
     border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    border: 1px solid var(--border);
+    box-shadow:
+        0 12px 36px rgba(0, 0, 0, 0.45),
+        0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.placeholder-label {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--text-tertiary);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+@media (prefers-color-scheme: light) {
+    .screenshot img {
+        box-shadow:
+            0 12px 36px rgba(0, 0, 0, 0.12),
+            0 2px 8px rgba(0, 0, 0, 0.06);
+    }
 }
 
 /* ---------- Sections ------------------------------------------------- */
