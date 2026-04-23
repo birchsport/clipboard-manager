@@ -98,6 +98,13 @@ Adding a language = extend the `DetectedLanguage` enum + add a `looksLike…` ca
 
 Releases are built and signed by `.github/workflows/release.yml` on any `v*.*.*` tag push: it sets up a temporary keychain from the Developer ID `.p12`, runs `scripts/make-dmg.sh`, signs the DMG with Sparkle's `sign_update`, generates/appends an `<item>` to `docs/appcast.xml` (committed back to main), and publishes a GitHub Release. Seven repo secrets are required: `DEVELOPER_ID_P12_BASE64`, `DEVELOPER_ID_P12_PASSWORD`, `KEYCHAIN_PASSWORD`, `APPLE_ID`, `APPLE_TEAM_ID`, `APPLE_APP_PASSWORD`, `SPARKLE_ED_PRIVATE_KEY`.
 
+Two gotchas wired into the workflow that are easy to break if you rewrite it:
+
+- `make-dmg.sh` re-signs Sparkle's nested XPC services (`Downloader.xpc`, `Installer.xpc`), `Autoupdate`, and `Updater.app` with our Developer ID + `--timestamp` + hardened runtime before staging the DMG. `xcodebuild archive` only signs the outer framework wrapper; the pre-signed inner bundles fail notarization otherwise.
+- The appcast's `<sparkle:version>` must be the integer `CURRENT_PROJECT_VERSION`, **not** the marketing string. Sparkle's default comparator matches it against the installed `CFBundleVersion`; feeding `"0.2.1"` against an installed `CFBundleVersion=2` makes Sparkle parse component-by-component (`2 > 0`) and conclude the installed build is already newer. The workflow derives `BUILD` by `awk`-ing `CURRENT_PROJECT_VERSION` out of `project.yml` so this stays honest.
+
+Per-release steps + troubleshooting notes live in `RELEASE_PROCESS.md` at the repo root.
+
 ### Storage
 
 `Storage/` uses GRDB:

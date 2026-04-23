@@ -62,6 +62,7 @@
       <li><strong>Type-aware actions</strong> with <strong>⌘K</strong> — open URL, reveal file, compose mail, call phone, paste hex as rgb().</li>
       <li><strong>Syntax-highlighted previews</strong> for 17 languages, plus a collapsible <strong>tree view</strong> for JSON / YAML / XML in Quick Look.</li>
       <li><strong>Local, private</strong> — no cloud, no analytics, no telemetry.</li>
+      <li><strong>Auto-updates</strong> via Sparkle — install once, get new versions in the background (EdDSA-signed, notarized).</li>
     </ul>
   </section>
 
@@ -158,6 +159,17 @@
       </article>
 
       <article class="feature">
+        <h3>Updates</h3>
+        <p>Install once; stay current automatically.</p>
+        <ul>
+          <li>Background check every 24 hours via <a href="https://sparkle-project.org" rel="noopener">Sparkle</a>.</li>
+          <li>Manual <strong>Check for Updates…</strong> in the menu bar and in Settings → General.</li>
+          <li>Every update is EdDSA-signed and notarized by Apple; Gatekeeper never blocks an installed user.</li>
+          <li>Feed hosted on GitHub Pages — no extra infrastructure, no telemetry.</li>
+        </ul>
+      </article>
+
+      <article class="feature">
         <h3>Privacy &amp; storage</h3>
         <ul>
           <li>Everything local. No cloud, no analytics, no telemetry.</li>
@@ -204,6 +216,11 @@
     <p class="subtle">
       Birchboard is a background agent — no Dock icon. Look for the clipboard
       icon in the menu bar. Right-click it for Settings, About, or Quit.
+    </p>
+    <p class="subtle">
+      Future versions install themselves — Birchboard checks for updates in
+      the background, or on demand via <em>Check for Updates…</em>. You only
+      download a DMG once.
     </p>
     <p>
       Prefer to build from source? Clone

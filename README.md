@@ -180,6 +180,17 @@ Bump `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in
 `Birchboard/project.yml`, then run `make-dmg.sh` again. The one-time
 setup above is a one-time-ever affair.
 
+### Automated releases via GitHub Actions
+
+`make-dmg.sh` is for local builds. For public releases a tag push is
+all it takes — `.github/workflows/release.yml` builds a signed +
+notarized DMG, appends an entry to `docs/appcast.xml`, and publishes
+a GitHub Release with the DMG attached. Installed users pick up the
+new version automatically via Sparkle.
+
+Full instructions — required repo secrets, per-release checklist,
+troubleshooting — live in [`RELEASE_PROCESS.md`](RELEASE_PROCESS.md).
+
 ## Permissions
 
 - **Accessibility** — required so the app can post a synthetic ⌘V into the
