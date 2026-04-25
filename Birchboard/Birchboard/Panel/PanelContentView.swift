@@ -368,13 +368,15 @@ private struct EntryPreviewView: View {
         switch entry.kind {
         case .text(let s):
             ScrollView {
-                CodeHighlighter.styledText(s, entryID: entry.id)
+                Text(s)
+                    .font(.system(size: 13, design: .monospaced))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .textSelection(.enabled)
             }
         case .rtf(_, let plain):
             ScrollView {
-                CodeHighlighter.styledText(plain, entryID: entry.id)
+                Text(plain)
+                    .font(.system(size: 13, design: .monospaced))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .textSelection(.enabled)
             }
