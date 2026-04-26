@@ -44,13 +44,15 @@ System requirements: macOS 14 (Sonoma) or newer. Apple Silicon or Intel.
 
 ## Previews
 
-- Live preview pane adjacent to the list.
-- Code-aware **syntax highlighting** in the preview for any detected
-  language. Swift goes through the Splash highlighter; other languages use
-  a keyword/string/number/comment rule set.
-- **⌘Y Quick Look overlay**: full-panel preview of the selected entry.
-  Full-size images, larger monospaced text, file paths with icons. Arrow
-  keys still navigate entries while the overlay is open.
+- Live preview pane adjacent to the list — plain monospaced text, no
+  highlighting. Kept lightweight so arrowing through code-heavy history
+  doesn't stutter while re-detecting and re-lexing on every selection.
+- **⌘Y Quick Look overlay**: full-panel preview of the selected entry,
+  with code-aware **syntax highlighting** for any detected language —
+  Swift through the Splash highlighter, other languages via a generic
+  keyword/string/number/comment rule set. Full-size images, larger
+  monospaced text, file paths with icons. Arrow keys still navigate
+  entries while the overlay is open.
 - **Structured tree view**: Quick Look on a JSON, YAML, or XML entry
   renders the payload as a collapsible tree — keys, typed values (strings,
   numbers, bools, null), array indices, XML elements (`<tag>`), XML
