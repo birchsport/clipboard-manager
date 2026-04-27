@@ -8,14 +8,23 @@ struct ClipEntry: Identifiable, Equatable {
     var createdAt: Date
     var source: SourceApp?
     var pinnedAt: Date?
+    var obfuscatedAt: Date?
+    var obfuscationNickname: String?
 
     var isPinned: Bool { pinnedAt != nil }
+    var isObfuscated: Bool { obfuscatedAt != nil }
 
     /// Text the fuzzy matcher searches against. Always includes the
     /// payload's `plainText`, and — for non-text kinds — appends
     /// descriptive tokens so users can find entries by type keyword
     /// ("image", "file"), dimensions ("400x300"), or filename.
     var searchText: String {
+        // Obfuscated entries are searchable only by nickname — the
+        // underlying payload is removed from the fuzzy index so typing
+        // the password doesn't reveal it via filter.
+        if isObfuscated {
+            return obfuscationNickname ?? ""
+        }
         switch kind {
         case .text, .rtf:
             return kind.plainText

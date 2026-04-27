@@ -41,7 +41,7 @@ Background agent (`LSUIElement=true`) with a status-bar `MenuBarExtra` and a non
 
 ### Panel as a state machine
 
-`PanelController` (in `Panel/`) owns the `NSPanel` subclass (`ClipboardPanel`) and the SwiftUI `PanelContentView` hosted inside it. The content is driven by `PanelViewModel` (the largest file, ~600 LOC) which is a four-mode state machine:
+`PanelController` (in `Panel/`) owns the `NSPanel` subclass (`ClipboardPanel`) and the SwiftUI `PanelContentView` hosted inside it. The content is driven by `PanelViewModel` (the largest file, ~700 LOC) which is a five-mode state machine:
 
 ```swift
 enum PanelMode {
@@ -49,10 +49,11 @@ enum PanelMode {
     case transformPicker(source, savedQuery)
     case snippetPicker(savedQuery)
     case actionPicker(source, savedQuery)
+    case nicknameEditor(entry, savedQuery) // editing an obfuscated entry's label
 }
 ```
 
-Each non-browse mode has its own parallel `@Published` state (`transformQuery / Matches / SelectedIndex`, `snippetQuery / Matches / SelectedIndex`, `actionQuery / Matches / SelectedIndex`). The search field in `PanelContentView` binds to the correct query depending on `mode`; the left column swaps between `EntryListView`, `TransformPickerView`, `SnippetPickerView`, `ActionPickerView`. Keyboard routing is: `handle(event:)` switches on mode to `handleBrowse` / `handleTransform` / `handleSnippet` / `handleAction`; each handler returns `true` to consume the event or `false` to let it flow to the focused `TextField`.
+Each non-browse mode has its own parallel `@Published` state (`transformQuery / Matches / SelectedIndex`, `snippetQuery / Matches / SelectedIndex`, `actionQuery / Matches / SelectedIndex`, `nicknameDraft`). The search field in `PanelContentView` binds to the correct query/draft depending on `mode`; the left column swaps between `EntryListView`, `TransformPickerView`, `SnippetPickerView`, `ActionPickerView` (the nickname editor reuses the search field — no dedicated left view). Keyboard routing is: `handle(event:)` switches on mode to `handleBrowse` / `handleTransform` / `handleSnippet` / `handleAction` / `handleNicknameEditor`; each handler returns `true` to consume the event or `false` to let it flow to the focused `TextField`. `handleNicknameEditor` swallows all ⌘-modified shortcuts so quick-paste / pin / delete / Quick Look don't fire mid-rename.
 
 **Critical**: hotkeys inside the panel come from an `NSEvent.addLocalMonitorForEvents` installed in `PanelController.installEventMonitor()`, not SwiftUI `.onKeyPress`. Removed when the panel closes.
 
@@ -108,14 +109,23 @@ Per-release steps + troubleshooting notes live in `RELEASE_PROCESS.md` at the re
 ### Storage
 
 `Storage/` uses GRDB:
-- `Database` — single table `entries` with flattened columns per `EntryKind` case, migration `v1_entries`.
-- `EntryRepository` — the **only** read/write gateway. Marked `@unchecked Sendable` because GRDB's `DatabasePool` is thread-safe and we need to call it from `Task.detached` for export/import. Publishes a `PassthroughSubject<Void, Never>` named `changes` that the view model subscribes to.
+- `Database` — single table `entries` with flattened columns per `EntryKind` case. Migrations: `v1_entries` creates the table; `v2_obfuscation` adds nullable `obfuscated_at` (timestamp) and `obfuscation_nickname` (text) columns. Both are additive; old DBs migrate forward without data loss.
+- `EntryRepository` — the **only** read/write gateway. Marked `@unchecked Sendable` because GRDB's `DatabasePool` is thread-safe and we need to call it from `Task.detached` for export/import. Publishes a `PassthroughSubject<Void, Never>` named `changes` that the view model subscribes to. `togglePin` / `toggleObfuscation` / `setObfuscationNickname` are sibling mutators; toggling obfuscation off clears the nickname so re-obfuscating later starts fresh. Retention sweeps and `clearUnpinned` skip rows with `pinned_at IS NOT NULL OR obfuscated_at IS NOT NULL` — obfuscated entries are user-curated, like pins.
 - `BlobStore` — content-addressed image blobs at `~/Library/Application Support/Birchboard/blobs/<sha256>.png`. Pruned during retention sweeps.
-- `HistoryArchive` — Codable JSON export/import, images inlined as base64. Dedup on import is by `dedup_hash`.
+- `HistoryArchive` — Codable JSON export/import, images inlined as base64. Dedup on import is by `dedup_hash`. Round-trips `obfuscatedAt` and `obfuscationNickname` so backups preserve the hidden state. The synthesized Codable for these `T?` fields is missing-key tolerant, so older v1 archives still import (their obfuscation fields land as nil).
 
 `EntryKind` is an enum with four cases (`text / rtf / image / fileURLs`). Its `tag: Int`, `plainText: String`, `dedupHash: String`, and `withReplacedText(_:) -> EntryKind` together are the "protocol surface" every other module treats as the clipboard payload abstraction.
 
-`ClipEntry.searchText` is a separate computed property from `plainText`. For text/RTF entries it returns the payload verbatim; for images it appends `"image WxH W×H"` tokens so typing "image" or the dimensions matches; for file URLs it prepends `"file"` / `"files"` plus the basenames. This is what the fuzzy matcher operates on — **do not replace `plainText` calls with `searchText` for anything that needs the literal payload** (hashing, previewing, the transform/action pickers).
+`ClipEntry.searchText` is a separate computed property from `plainText`. For non-obfuscated text/RTF entries it returns the payload verbatim; for images it appends `"image WxH W×H"` tokens so typing "image" or the dimensions matches; for file URLs it prepends `"file"` / `"files"` plus the basenames. **For obfuscated entries it short-circuits to `obfuscationNickname ?? ""`** so the underlying payload never enters the fuzzy index — typing the password doesn't surface the row. This is what the fuzzy matcher operates on — **do not replace `plainText` calls with `searchText` for anything that needs the literal payload** (hashing, previewing, the transform/action pickers, `ClipboardWriter.write`).
+
+### Obfuscation
+
+Per-entry "screen-share safety" flag. Pin's exact shape: a nullable timestamp + an optional text label. State lives only in the database; nothing on `Preferences`. The paste path (`ClipboardWriter.write`, `PanelController.paste`) reads `entry.kind` directly and is **untouched** — obfuscated entries paste their real value. All hiding is at the rendering layer:
+
+- `Panel/PanelContentView.swift`: `EntryRow.previewText` returns `"\(nickname)  ••••••••"` (or just dots) when `entry.isObfuscated`; `detectedLanguage` short-circuits to nil so the language chip can't leak; `EntryPreviewView` early-returns to `obfuscatedView` (centered nickname + dots, no `.text` / `.rtf` payload access).
+- `Panel/QuickLookView.swift`: same early-return; `sizeString` is suppressed (even char-count would leak); `LanguageDetector.detect` and `CodeHighlighter.styledText` are never reached.
+- `Panel/PanelViewModel.swift`: ⌘O toggles obfuscation; on toggle-on it enters `.nicknameEditor` mode pre-populated with `""` so the user can name the entry while it's fresh. ⌘R re-edits the nickname on an already-obfuscated entry. ⌘T / ⌘S / ⌘K / ⌘Y all `NSSound.beep()` and short-circuit when `selectedEntry?.isObfuscated == true`.
+- Image / file-URL entries are not obfuscatable (passwords are text); `toggleObfuscationForSelected()` beeps for them.
 
 ### Clipboard ingestion
 

@@ -15,6 +15,7 @@ struct HelpTab: View {
                 capture
                 browsing
                 previews
+                obfuscation
                 transforms
                 snippets
                 actions
@@ -61,6 +62,8 @@ struct HelpTab: View {
         ("⌘K",         "Action picker"),
         ("⌘Y",         "Quick Look preview overlay"),
         ("⌘P",         "Pin / unpin selected"),
+        ("⌘O",         "Obfuscate / un-obfuscate selected (hides content for screen-share)"),
+        ("⌘R",         "Rename obfuscated entry's nickname"),
         ("⌘⌫",         "Delete selected"),
         ("Esc",        "Close overlay, or dismiss panel"),
     ]
@@ -92,6 +95,22 @@ struct HelpTab: View {
             bullet("The right-side pane renders text with syntax highlighting when a language is detected.")
             bullet("⌘Y opens a full-panel Quick Look overlay for the selected entry.")
             bullet("For JSON, YAML, or XML entries, Quick Look shows a collapsible tree instead of flat text. Click any `{ … keys }` / `[ … items ]` / `<tag>` row to expand or collapse; each subtree toggles independently.")
+        }
+    }
+
+    private var obfuscation: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            sectionHeader("⌘O — Obfuscate (screen-share safety)")
+            Text("Pin a password or other secret you paste daily, then mark it obfuscated. Birchboard hides the content everywhere — list, preview pane, Quick Look — but the real value still pastes when you hit ⏎.")
+                .foregroundStyle(.secondary)
+                .font(.system(size: 11))
+                .padding(.bottom, 2)
+                .fixedSize(horizontal: false, vertical: true)
+            bullet("⌘O on a text entry hides it. Toggle again to reveal.")
+            bullet("Optional nickname (e.g. `aws-prod`) shown in place of the value — set on first toggle, edit later with ⌘R.")
+            bullet("Search hits the nickname only — typing the underlying value won't filter to it.")
+            bullet("Transforms / actions / Quick Look are blocked while obfuscated, so the payload is never lexed or rendered.")
+            bullet("Obfuscated rows are exempt from retention sweeps (just like pinned).")
         }
     }
 

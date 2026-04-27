@@ -14,6 +14,11 @@ falls short (nonactivating panels, global hotkeys, focus capture).
 - fzf-style fuzzy search with word-boundary, consecutive-match, and camelCase bonuses.
 - ⏎ pastes with original formatting; ⇧⏎ pastes as plain text; ⌘P pins;
   ⌘⌫ deletes; Esc dismisses.
+- **⌘O obfuscates** a sensitive entry (passwords you paste daily) — the row
+  collapses to `🔒 nickname  ••••••••` and the preview / Quick Look refuse
+  to render the payload, but ⏎ still pastes the real value. ⌘R re-edits the
+  nickname. Search hits the nickname only, so typing the underlying text
+  never reveals it. Obfuscated rows are exempt from retention sweeps.
 - ⌘1–⌘9 quick-pastes the Nth visible entry without arrow-keying. ⇧ combined
   with the digit pastes as plain text.
 - ⌘Y toggles a full-panel **Quick Look** preview of the selected entry

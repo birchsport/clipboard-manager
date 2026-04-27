@@ -108,6 +108,14 @@ final class PanelController: NSObject, NSWindowDelegate {
         try? services.repository.togglePin(id: entry.id)
     }
 
+    func toggleObfuscation(_ entry: ClipEntry) {
+        try? services.repository.toggleObfuscation(id: entry.id)
+    }
+
+    func setObfuscationNickname(_ entry: ClipEntry, _ nickname: String?) {
+        try? services.repository.setObfuscationNickname(id: entry.id, nickname)
+    }
+
     func delete(_ entry: ClipEntry) {
         try? services.repository.delete(id: entry.id)
     }
@@ -183,6 +191,10 @@ final class PanelActions: ObservableObject {
 
     func dismiss() { controller?.hide() }
     func togglePin(_ entry: ClipEntry) { controller?.togglePin(entry) }
+    func toggleObfuscation(_ entry: ClipEntry) { controller?.toggleObfuscation(entry) }
+    func setObfuscationNickname(_ entry: ClipEntry, _ nickname: String?) {
+        controller?.setObfuscationNickname(entry, nickname)
+    }
     func delete(_ entry: ClipEntry) { controller?.delete(entry) }
 }
 

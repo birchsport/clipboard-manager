@@ -42,6 +42,29 @@ System requirements: macOS 14 (Sonoma) or newer. Apple Silicon or Intel.
 - **Pin / unpin** entries so they stay on top (⌘P).
 - **Delete** with ⌘⌫.
 
+## ⌘O — Obfuscate (screen-share safety)
+
+Mark sensitive entries — passwords you paste daily — so Birchboard never
+renders the payload in any UI surface, while ⏎ still pastes the real value.
+
+- ⌘O on a text or RTF row toggles obfuscation. The first toggle opens an
+  inline nickname editor; ⏎ saves, Esc cancels. Empty nickname is allowed —
+  the row just shows `🔒 ••••••••`.
+- ⌘R re-edits the nickname later.
+- The list row, side preview, and Quick Look all show
+  `🔒 nickname  ••••••••` instead of the content. Language detection,
+  syntax highlighting, transforms (⌘T), snippets-against (⌘S), actions
+  (⌘K), and Quick Look (⌘Y) are all suppressed for obfuscated rows so the
+  payload is never lexed or rendered.
+- **Search hits the nickname only** — typing the underlying text won't
+  filter to the row. Hard requirement for screen-shares: typing the
+  password into the search field can't reveal it.
+- Obfuscated rows are exempt from retention sweeps (treated like pinned).
+- Pin and obfuscate are independent flags; you can pin an obfuscated entry
+  and the lock + pin icons both appear.
+- Toggling obfuscation off restores normal rendering and clears the
+  nickname.
+
 ## Previews
 
 - Live preview pane adjacent to the list — plain monospaced text, no
@@ -180,5 +203,7 @@ While the panel is open:
 | ⌘K            | Action picker                               |
 | ⌘Y            | Quick Look preview overlay                  |
 | ⌘P            | Pin / unpin selected                        |
+| ⌘O            | Obfuscate / un-obfuscate selected (hide content for screen-share) |
+| ⌘R            | Rename obfuscated entry's nickname          |
 | ⌘⌫            | Delete selected                             |
 | Esc           | Close overlay, or dismiss panel             |

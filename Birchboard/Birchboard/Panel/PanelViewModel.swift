@@ -3,13 +3,15 @@ import Combine
 import Foundation
 
 /// The panel is a small state machine: ordinary browsing of the history, or
-/// picking a transform (`⌘T`), snippet (`⌘S`), or action (`⌘K`).
-/// `savedQuery` lets Esc restore the prior browse-mode search text.
+/// picking a transform (`⌘T`), snippet (`⌘S`), action (`⌘K`), or editing the
+/// nickname of an obfuscated entry. `savedQuery` lets Esc restore the prior
+/// browse-mode search text.
 enum PanelMode: Equatable {
     case browse
     case transformPicker(source: ClipEntry, savedQuery: String)
     case snippetPicker(savedQuery: String)
     case actionPicker(source: ClipEntry, savedQuery: String)
+    case nicknameEditor(entry: ClipEntry, savedQuery: String)
 }
 
 /// Backing state for `PanelContentView`. Loads entries from the repository, runs the
@@ -48,6 +50,10 @@ final class PanelViewModel: ObservableObject {
     @Published var actionQuery: String = ""
     @Published var actionMatches: [any EntryAction] = []
     @Published var actionSelectedIndex: Int = 0
+
+    // MARK: - Nickname-editor state
+
+    @Published var nicknameDraft: String = ""
 
     // MARK: - Quick Look
 
@@ -116,6 +122,7 @@ final class PanelViewModel: ObservableObject {
         mode = .browse
         transformError = nil
         isQuickLookOpen = false
+        nicknameDraft = ""
         focusRequestTick &+= 1
     }
 
@@ -374,6 +381,66 @@ final class PanelViewModel: ObservableObject {
         action.perform(entry: source, context: context)
     }
 
+    // MARK: - Obfuscation
+
+    /// Toggle obfuscation on the focused entry. When toggling **on**, also
+    /// open the nickname editor pre-populated with an empty draft so the
+    /// user can name the entry while it's fresh in their head — they can
+    /// dismiss with Esc to leave it nameless. Toggling off un-obfuscates
+    /// and clears the nickname (in the repository).
+    ///
+    /// Image / file-URL entries are not obfuscatable — passwords are text.
+    func toggleObfuscationForSelected() {
+        guard case .browse = mode else { return }
+        guard let entry = selectedEntry else { return }
+        switch entry.kind {
+        case .image, .fileURLs:
+            NSSound.beep()
+            return
+        case .text, .rtf:
+            break
+        }
+        actions.toggleObfuscation(entry)
+        if !entry.isObfuscated {
+            // Was off, now on — open nickname editor for a freshly-obfuscated entry.
+            // We pass the entry as it *will* be after the toggle: refresh()
+            // will arrive shortly via the repo's change publisher, but the
+            // editor mode only needs the id.
+            let savedQuery = query
+            mode = .nicknameEditor(entry: entry, savedQuery: savedQuery)
+            nicknameDraft = ""
+            focusRequestTick &+= 1
+        }
+    }
+
+    /// Open the nickname editor for an already-obfuscated entry, pre-filled
+    /// with the existing nickname.
+    func renameSelected() {
+        guard case .browse = mode else { return }
+        guard let entry = selectedEntry, entry.isObfuscated else { return }
+        let savedQuery = query
+        mode = .nicknameEditor(entry: entry, savedQuery: savedQuery)
+        nicknameDraft = entry.obfuscationNickname ?? ""
+        focusRequestTick &+= 1
+    }
+
+    func commitNickname() {
+        guard case .nicknameEditor(let entry, let savedQuery) = mode else { return }
+        actions.setObfuscationNickname(entry, nicknameDraft)
+        query = savedQuery
+        mode = .browse
+        nicknameDraft = ""
+        focusRequestTick &+= 1
+    }
+
+    func cancelNickname() {
+        guard case .nicknameEditor(_, let savedQuery) = mode else { return }
+        query = savedQuery
+        mode = .browse
+        nicknameDraft = ""
+        focusRequestTick &+= 1
+    }
+
     /// Expand `snippet`'s placeholders against the current pasteboard and
     /// paste via the normal paste flow as a one-shot synthetic entry.
     func applySnippet(_ snippet: Snippet) {
@@ -440,6 +507,8 @@ final class PanelViewModel: ObservableObject {
             return handleSnippet(event: event)
         case .actionPicker:
             return handleAction(event: event)
+        case .nicknameEditor:
+            return handleNicknameEditor(event: event)
         }
     }
 
@@ -477,12 +546,20 @@ final class PanelViewModel: ObservableObject {
             return true
         case 16: // Y — ⌘Y toggles Quick Look
             if cmd {
+                if selectedEntry?.isObfuscated == true {
+                    NSSound.beep() // never lex/render the payload while obfuscated
+                    return true
+                }
                 toggleQuickLook()
                 return true
             }
             return false
         case 17: // T — ⌘T enters transform mode
             if cmd {
+                if selectedEntry?.isObfuscated == true {
+                    NSSound.beep()
+                    return true
+                }
                 enterTransformMode()
                 return true
             }
@@ -495,6 +572,10 @@ final class PanelViewModel: ObservableObject {
             return false
         case 40: // K — ⌘K enters action mode
             if cmd {
+                if selectedEntry?.isObfuscated == true {
+                    NSSound.beep()
+                    return true
+                }
                 enterActionMode()
                 return true
             }
@@ -502,6 +583,18 @@ final class PanelViewModel: ObservableObject {
         case 35: // P — ⌘P pins
             if cmd, let entry = selectedEntry {
                 actions.togglePin(entry)
+                return true
+            }
+            return false
+        case 31: // O — ⌘O toggles obfuscation
+            if cmd {
+                toggleObfuscationForSelected()
+                return true
+            }
+            return false
+        case 15: // R — ⌘R renames an obfuscated entry's nickname
+            if cmd {
+                renameSelected()
                 return true
             }
             return false
@@ -513,6 +606,25 @@ final class PanelViewModel: ObservableObject {
             return false
         default:
             return false
+        }
+    }
+
+    private func handleNicknameEditor(event: NSEvent) -> Bool {
+        switch event.keyCode {
+        case 53: // Esc — cancel
+            cancelNickname()
+            return true
+        case 36, 76: // Return — commit
+            commitNickname()
+            return true
+        default:
+            // Swallow any ⌘-modified shortcut so quick-paste / pin / delete
+            // / Quick Look don't fire while the user is naming an entry.
+            // Plain typing falls through to the TextField.
+            let cmd = event.modifierFlags
+                .intersection(.deviceIndependentFlagsMask)
+                .contains(.command)
+            return cmd
         }
     }
 

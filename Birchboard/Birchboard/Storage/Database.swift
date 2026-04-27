@@ -35,6 +35,13 @@ final class Database {
             }
         }
 
+        m.registerMigration("v2_obfuscation") { db in
+            try db.alter(table: "entries") { t in
+                t.add(column: "obfuscated_at", .datetime)
+                t.add(column: "obfuscation_nickname", .text)
+            }
+        }
+
         return m
     }
 }

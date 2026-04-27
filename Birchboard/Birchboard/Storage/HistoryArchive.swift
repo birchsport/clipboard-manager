@@ -35,6 +35,8 @@ struct ArchivedEntry: Codable {
     let kind: Kind
     let createdAt: Date
     let pinnedAt: Date?
+    let obfuscatedAt: Date?
+    let obfuscationNickname: String?
     let sourceBundleID: String?
     let sourceName: String?
     let dedupHash: String
@@ -53,6 +55,8 @@ struct ArchivedEntry: Codable {
     init(from entry: ClipEntry, imageDataLoader: (URL) throws -> Data) rethrows {
         self.createdAt = entry.createdAt
         self.pinnedAt = entry.pinnedAt
+        self.obfuscatedAt = entry.obfuscatedAt
+        self.obfuscationNickname = entry.obfuscationNickname
         self.sourceBundleID = entry.source?.bundleID
         self.sourceName = entry.source?.name
         self.dedupHash = entry.kind.dedupHash

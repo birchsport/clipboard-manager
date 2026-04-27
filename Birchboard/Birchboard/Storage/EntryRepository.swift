@@ -79,6 +79,35 @@ final class EntryRepository: @unchecked Sendable {
         subject.send()
     }
 
+    /// Toggles obfuscation on `id`. Toggling off clears the nickname so
+    /// re-obfuscating later starts fresh.
+    func toggleObfuscation(id: Int64) throws {
+        try database.pool.write { db in
+            if let obfuscated = try Bool.fetchOne(db, sql: "SELECT obfuscated_at IS NOT NULL FROM entries WHERE id = ?", arguments: [id]) {
+                if obfuscated {
+                    try db.execute(sql: "UPDATE entries SET obfuscated_at = NULL, obfuscation_nickname = NULL WHERE id = ?",
+                                   arguments: [id])
+                } else {
+                    try db.execute(sql: "UPDATE entries SET obfuscated_at = ? WHERE id = ?",
+                                   arguments: [Date(), id])
+                }
+            }
+        }
+        subject.send()
+    }
+
+    /// Sets the user-supplied display nickname for an obfuscated entry.
+    /// Pass nil/empty to clear it (entry stays obfuscated, just no label).
+    func setObfuscationNickname(id: Int64, _ nickname: String?) throws {
+        let cleaned = nickname?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let value = (cleaned?.isEmpty ?? true) ? nil : cleaned
+        try database.pool.write { db in
+            try db.execute(sql: "UPDATE entries SET obfuscation_nickname = ? WHERE id = ?",
+                           arguments: [value, id])
+        }
+        subject.send()
+    }
+
     func clearAll() throws {
         try database.pool.write { db in
             try db.execute(sql: "DELETE FROM entries")
@@ -89,7 +118,7 @@ final class EntryRepository: @unchecked Sendable {
 
     func clearUnpinned() throws {
         try database.pool.write { db in
-            try db.execute(sql: "DELETE FROM entries WHERE pinned_at IS NULL")
+            try db.execute(sql: "DELETE FROM entries WHERE pinned_at IS NULL AND obfuscated_at IS NULL")
         }
         pruneBlobs()
         subject.send()
@@ -196,8 +225,8 @@ final class EntryRepository: @unchecked Sendable {
             INSERT INTO entries
             (kind, text, rtf_data, blob_path, image_width, image_height, image_hash,
              file_urls, search_text, dedup_hash, source_bundle_id, source_name,
-             created_at, pinned_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             created_at, pinned_at, obfuscated_at, obfuscation_nickname)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, arguments: [
                 entry.kind.rawValue,
                 text,
@@ -213,12 +242,15 @@ final class EntryRepository: @unchecked Sendable {
                 entry.sourceName,
                 entry.createdAt,
                 entry.pinnedAt,
+                entry.obfuscatedAt,
+                entry.obfuscationNickname,
             ])
     }
 
     // MARK: - Retention
 
-    /// Trims by count and age; pinned rows are never removed. Then prunes orphan blobs.
+    /// Trims by count and age; pinned and obfuscated rows are never removed.
+    /// Then prunes orphan blobs.
     func runRetentionSweep(preferences: Preferences) {
         let maxCount = preferences.retentionCount
         let maxAgeDays = preferences.retentionDays
@@ -228,19 +260,19 @@ final class EntryRepository: @unchecked Sendable {
                 // Age-based trim.
                 try db.execute(sql: """
                     DELETE FROM entries
-                    WHERE pinned_at IS NULL AND created_at < ?
+                    WHERE pinned_at IS NULL AND obfuscated_at IS NULL AND created_at < ?
                     """, arguments: [cutoff])
 
-                // Count-based trim (unpinned only).
+                // Count-based trim (unpinned + non-obfuscated only).
                 let unpinnedCount = try Int.fetchOne(db,
-                    sql: "SELECT COUNT(*) FROM entries WHERE pinned_at IS NULL") ?? 0
+                    sql: "SELECT COUNT(*) FROM entries WHERE pinned_at IS NULL AND obfuscated_at IS NULL") ?? 0
                 if unpinnedCount > maxCount {
                     let overflow = unpinnedCount - maxCount
                     try db.execute(sql: """
                         DELETE FROM entries
                         WHERE id IN (
                             SELECT id FROM entries
-                            WHERE pinned_at IS NULL
+                            WHERE pinned_at IS NULL AND obfuscated_at IS NULL
                             ORDER BY created_at ASC
                             LIMIT ?
                         )
@@ -356,6 +388,8 @@ final class EntryRepository: @unchecked Sendable {
                          kind: kind,
                          createdAt: row["created_at"] ?? Date(),
                          source: source,
-                         pinnedAt: row["pinned_at"])
+                         pinnedAt: row["pinned_at"],
+                         obfuscatedAt: row["obfuscated_at"],
+                         obfuscationNickname: row["obfuscation_nickname"])
     }
 }

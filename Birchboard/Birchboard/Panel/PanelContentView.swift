@@ -94,10 +94,16 @@ struct PanelContentView: View {
         return false
     }
 
+    private var isNicknameMode: Bool {
+        if case .nicknameEditor = viewModel.mode { return true }
+        return false
+    }
+
     private var searchIcon: String {
         if isTransformMode { return "wand.and.stars" }
         if isSnippetMode   { return "text.badge.plus" }
         if isActionMode    { return "bolt" }
+        if isNicknameMode  { return "lock.fill" }
         return "magnifyingglass"
     }
 
@@ -105,6 +111,7 @@ struct PanelContentView: View {
         if isTransformMode { return "Filter transforms…" }
         if isSnippetMode   { return "Find snippet…" }
         if isActionMode    { return "Filter actions…" }
+        if isNicknameMode  { return "Nickname (optional) — ⏎ to save, Esc to cancel" }
         return "Search clipboard…"
     }
 
@@ -115,6 +122,7 @@ struct PanelContentView: View {
                 if isTransformMode { return viewModel.transformQuery }
                 if isSnippetMode   { return viewModel.snippetQuery }
                 if isActionMode    { return viewModel.actionQuery }
+                if isNicknameMode  { return viewModel.nicknameDraft }
                 return viewModel.query
             },
             set: { newValue in
@@ -124,6 +132,8 @@ struct PanelContentView: View {
                     viewModel.snippetQuery = newValue
                 } else if isActionMode {
                     viewModel.actionQuery = newValue
+                } else if isNicknameMode {
+                    viewModel.nicknameDraft = newValue
                 } else {
                     viewModel.query = newValue
                 }
@@ -132,13 +142,25 @@ struct PanelContentView: View {
     }
 
     /// In transform / action mode, show the source entry in the preview so the
-    /// user can see what they're operating on.
+    /// user can see what they're operating on. In nickname-editor mode show
+    /// the entry being renamed with the live draft applied.
     private var previewEntry: ClipEntry? {
         if case .transformPicker(let source, _) = viewModel.mode {
             return source
         }
         if case .actionPicker(let source, _) = viewModel.mode {
             return source
+        }
+        if case .nicknameEditor(let entry, _) = viewModel.mode {
+            // Live preview: force obfuscated rendering with the draft
+            // nickname applied. The repository toggle is async via the
+            // change publisher, so the captured `entry` may not yet show
+            // `isObfuscated == true`; we coerce it for the preview.
+            var live = entry
+            if live.obfuscatedAt == nil { live.obfuscatedAt = Date() }
+            let trimmed = viewModel.nicknameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+            live.obfuscationNickname = trimmed.isEmpty ? nil : trimmed
+            return live
         }
         return viewModel.selectedEntry
     }
@@ -234,6 +256,11 @@ private struct EntryRow: View {
                             .foregroundStyle(.orange)
                             .font(.system(size: 9))
                     }
+                    if entry.isObfuscated {
+                        Image(systemName: "lock.fill")
+                            .foregroundStyle(.secondary)
+                            .font(.system(size: 9))
+                    }
                     if let src = entry.source?.name {
                         Text(src)
                             .foregroundStyle(.secondary)
@@ -256,8 +283,11 @@ private struct EntryRow: View {
     }
 
     /// Detected language for this entry, if any — only checked for text /
-    /// rtf entries since images and file URLs can't be code.
+    /// rtf entries since images and file URLs can't be code. Obfuscated
+    /// entries skip detection entirely so the language chip doesn't leak
+    /// hints about the underlying payload.
     private var detectedLanguage: DetectedLanguage? {
+        if entry.isObfuscated { return nil }
         switch entry.kind {
         case .text(let s):
             return LanguageDetector.detect(s, cacheKey: "text-\(entry.id)")
@@ -326,6 +356,13 @@ private struct EntryRow: View {
     }
 
     private var previewText: String {
+        if entry.isObfuscated {
+            let dots = "••••••••"
+            if let nick = entry.obfuscationNickname, !nick.isEmpty {
+                return "\(nick)  \(dots)"
+            }
+            return dots
+        }
         switch entry.kind {
         case .image(_, let w, let h, _):
             return "Image — \(w)×\(h)"
@@ -365,6 +402,39 @@ private struct EntryPreviewView: View {
 
     @ViewBuilder
     private func content(for entry: ClipEntry) -> some View {
+        if entry.isObfuscated {
+            obfuscatedView(for: entry)
+        } else {
+            payloadContent(for: entry)
+        }
+    }
+
+    @ViewBuilder
+    private func obfuscatedView(for entry: ClipEntry) -> some View {
+        VStack(spacing: 8) {
+            Spacer()
+            if let nick = entry.obfuscationNickname, !nick.isEmpty {
+                Text(nick)
+                    .font(.system(size: 14, weight: .medium))
+            } else {
+                Text("(no nickname)")
+                    .italic()
+                    .foregroundStyle(.tertiary)
+                    .font(.system(size: 12))
+            }
+            Text("••••••••")
+                .font(.system(size: 18, design: .monospaced))
+                .foregroundStyle(.secondary)
+            Text("Hidden — ⌘O to reveal, ⌘R to rename")
+                .font(.system(size: 10))
+                .foregroundStyle(.tertiary)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    @ViewBuilder
+    private func payloadContent(for entry: ClipEntry) -> some View {
         switch entry.kind {
         case .text(let s):
             ScrollView {

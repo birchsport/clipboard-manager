@@ -66,8 +66,11 @@ struct QuickLookView: View {
     }
 
     /// Shown top-right: character count for text, dimensions for image, file count.
+    /// Suppressed entirely for obfuscated entries — even the character count
+    /// would leak information.
     private var sizeString: String? {
         guard let entry else { return nil }
+        if entry.isObfuscated { return nil }
         switch entry.kind {
         case .text(let s):
             return "\(s.count) chars · \(s.components(separatedBy: "\n").count) lines"
@@ -83,21 +86,50 @@ struct QuickLookView: View {
     @ViewBuilder
     private var content: some View {
         if let entry {
-            switch entry.kind {
-            case .text(let s):
-                textView(s, entryID: entry.id)
-            case .rtf(_, let plain):
-                textView(plain, entryID: entry.id)
-            case .image(let path, _, _, _):
-                imageView(path)
-            case .fileURLs(let urls):
-                fileView(urls)
+            if entry.isObfuscated {
+                obfuscatedContent(entry)
+            } else {
+                switch entry.kind {
+                case .text(let s):
+                    textView(s, entryID: entry.id)
+                case .rtf(_, let plain):
+                    textView(plain, entryID: entry.id)
+                case .image(let path, _, _, _):
+                    imageView(path)
+                case .fileURLs(let urls):
+                    fileView(urls)
+                }
             }
         } else {
             Text("Nothing to preview")
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+    }
+
+    /// Quick Look fallback for obfuscated entries — never lex / highlight /
+    /// render the payload. Just nickname (if any) plus dots.
+    private func obfuscatedContent(_ entry: ClipEntry) -> some View {
+        VStack(spacing: 12) {
+            Spacer()
+            if let nick = entry.obfuscationNickname, !nick.isEmpty {
+                Text(nick)
+                    .font(.system(size: 18, weight: .semibold))
+            } else {
+                Text("(no nickname)")
+                    .italic()
+                    .foregroundStyle(.tertiary)
+                    .font(.system(size: 14))
+            }
+            Text("••••••••")
+                .font(.system(size: 28, design: .monospaced))
+                .foregroundStyle(.secondary)
+            Text("Hidden — ⌘O to reveal, ⌘R to rename")
+                .font(.system(size: 11))
+                .foregroundStyle(.tertiary)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     @ViewBuilder
