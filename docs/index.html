@@ -61,6 +61,7 @@
       <li><strong>User-authored snippets</strong> with <code>{clipboard}</code> / <code>{date}</code> / <code>{uuid}</code> placeholders.</li>
       <li><strong>Type-aware actions</strong> with <strong>⌘K</strong> — open URL, reveal file, compose mail, call phone, paste hex as rgb().</li>
       <li><strong>Syntax-highlighted Quick Look</strong> for 17 languages, plus a collapsible <strong>tree view</strong> for JSON / YAML / XML.</li>
+      <li><strong>Obfuscate</strong> sensitive entries with <strong>⌘O</strong> — hide the value during screen-shares, paste the real thing on <strong>⏎</strong>.</li>
       <li><strong>Local, private</strong> — no cloud, no analytics, no telemetry.</li>
       <li><strong>Auto-updates</strong> via Sparkle — install once, get new versions in the background (EdDSA-signed, notarized).</li>
     </ul>
@@ -148,6 +149,17 @@
       </article>
 
       <article class="feature">
+        <h3><kbd>⌘O</kbd> &mdash; Obfuscate</h3>
+        <p>Pin a password you paste daily, then mark it obfuscated for screen-share safety. The list, preview, and Quick Look all show <code>🔒 nickname  ••••••••</code> instead of the value &mdash; <kbd>⏎</kbd> still pastes the real thing.</p>
+        <ul>
+          <li>An optional nickname (e.g. <code>aws-prod</code>) is shown in place of the value; <kbd>⌘R</kbd> re-edits it later.</li>
+          <li>Search hits the nickname only &mdash; typing the underlying text won't reveal the row.</li>
+          <li>Transforms, snippets, actions, and Quick Look are blocked while obfuscated, so the payload is never lexed or rendered.</li>
+          <li>Obfuscated rows are exempt from retention sweeps, like pinned ones. Pin and obfuscate are independent flags.</li>
+        </ul>
+      </article>
+
+      <article class="feature">
         <h3>Preferences</h3>
         <ul>
           <li>Retention — cap history by count (default 1000) and age (default 90 days); pinned entries exempt.</li>
@@ -199,6 +211,8 @@
         <tr><td><kbd>⌘K</kbd></td><td>Action picker</td></tr>
         <tr><td><kbd>⌘Y</kbd></td><td>Quick Look preview overlay</td></tr>
         <tr><td><kbd>⌘P</kbd></td><td>Pin / unpin selected</td></tr>
+        <tr><td><kbd>⌘O</kbd></td><td>Obfuscate / un-obfuscate selected (hide content for screen-share)</td></tr>
+        <tr><td><kbd>⌘R</kbd></td><td>Rename obfuscated entry's nickname</td></tr>
         <tr><td><kbd>⌘⌫</kbd></td><td>Delete selected</td></tr>
         <tr><td><kbd>Esc</kbd></td><td>Close overlay or dismiss panel</td></tr>
       </tbody>
