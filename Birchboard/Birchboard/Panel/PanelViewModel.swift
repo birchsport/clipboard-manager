@@ -25,6 +25,14 @@ final class PanelViewModel: ObservableObject {
     @Published var entries: [ClipEntry] = []
     @Published var selectedIndex: Int = 0
 
+    /// IDs of entries the user has gathered for a multi-paste, in the order
+    /// they were added. The membership Set is the source of truth for "is in
+    /// batch?"; the array preserves paste order. They are kept in sync by
+    /// `toggleBatch` / `clearBatch`. Cleared on every panel open via
+    /// `focusSearchField()`.
+    @Published private(set) var batchedIDs: Set<Int64> = []
+    @Published private(set) var batchedOrder: [Int64] = []
+
     /// Bumped every time we want the view to re-focus the search field. Observed via
     /// `.onChange` so each increment fires even when the NSPanel is reopened.
     @Published var focusRequestTick: Int = 0
@@ -123,6 +131,7 @@ final class PanelViewModel: ObservableObject {
         transformError = nil
         isQuickLookOpen = false
         nicknameDraft = ""
+        clearBatch()
         focusRequestTick &+= 1
     }
 
@@ -132,6 +141,69 @@ final class PanelViewModel: ObservableObject {
 
     var selectedEntry: ClipEntry? {
         entries.indices.contains(selectedIndex) ? entries[selectedIndex] : nil
+    }
+
+    // MARK: - Multi-select batch
+
+    /// Resolved entries for the current batch in paste order. IDs that no
+    /// longer exist in `allEntries` (e.g. deleted while the panel was open)
+    /// are silently skipped.
+    var batchedEntries: [ClipEntry] {
+        let byID = Dictionary(uniqueKeysWithValues: allEntries.map { ($0.id, $0) })
+        return batchedOrder.compactMap { byID[$0] }
+    }
+
+    /// Toggle whether `entry` is part of the multi-paste batch. Image entries
+    /// are rejected (their `plainText` is empty, which would silently produce
+    /// gaps between delimiters); obfuscated entries are rejected (a
+    /// concatenated paste would reveal the value with no nickname semantics).
+    /// Both produce a beep.
+    func toggleBatch(entryID: Int64) {
+        if batchedIDs.contains(entryID) {
+            batchedIDs.remove(entryID)
+            batchedOrder.removeAll { $0 == entryID }
+            return
+        }
+        guard let entry = allEntries.first(where: { $0.id == entryID }) else { return }
+        switch entry.kind {
+        case .image:
+            NSSound.beep(); return
+        case .text, .rtf, .fileURLs:
+            break
+        }
+        if entry.isObfuscated {
+            NSSound.beep(); return
+        }
+        batchedIDs.insert(entryID)
+        batchedOrder.append(entryID)
+    }
+
+    /// Contiguously extend the batch from the current keyboard cursor to
+    /// `newIndex` (inclusive). Each row added obeys the same image /
+    /// obfuscated guards as `toggleBatch` (silent skip rather than beep, so a
+    /// big sweep doesn't drown the user in beeps).
+    func extendBatch(to newIndex: Int) {
+        guard !entries.isEmpty else { return }
+        let clamped = max(0, min(entries.count - 1, newIndex))
+        let from = max(0, min(entries.count - 1, selectedIndex))
+        let lo = min(from, clamped)
+        let hi = max(from, clamped)
+        for i in lo...hi {
+            let entry = entries[i]
+            if batchedIDs.contains(entry.id) { continue }
+            switch entry.kind {
+            case .image: continue
+            case .text, .rtf, .fileURLs: break
+            }
+            if entry.isObfuscated { continue }
+            batchedIDs.insert(entry.id)
+            batchedOrder.append(entry.id)
+        }
+    }
+
+    func clearBatch() {
+        batchedIDs.removeAll()
+        batchedOrder.removeAll()
     }
 
     // MARK: - Filtering (browse)
@@ -517,13 +589,34 @@ final class PanelViewModel: ObservableObject {
         let cmd = flags.contains(.command)
         let shift = flags.contains(.shift)
 
-        // ⌘1–⌘9: paste the Nth visible entry. ⇧⌘N pastes plain text.
+        // ⌘1–⌘9: paste the Nth visible entry. ⇧⌘N pastes plain text. ⌘1-9
+        // is deliberately a single-row escape hatch — it ignores any active
+        // batch and pastes just that row.
         // Keycode-based so Shift's character-remap (1→!, etc.) doesn't break it.
         if cmd, let digit = Self.digitForTopRowKeyCode[event.keyCode] {
             let idx = digit - 1
             if entries.indices.contains(idx) {
                 actions.paste(entries[idx], asPlainText: shift)
             }
+            return true
+        }
+
+        // ⇧Space toggles the current row in the multi-paste batch. Mouseless
+        // equivalent of ⌘-click; ⇧↑/⇧↓ extends contiguously like Finder.
+        if shift, !cmd, event.keyCode == 49 {
+            if let entry = selectedEntry {
+                toggleBatch(entryID: entry.id)
+            }
+            return true
+        }
+        if shift, !cmd, event.keyCode == 125 { // ⇧Down
+            extendBatch(to: selectedIndex + 1)
+            moveSelection(+1)
+            return true
+        }
+        if shift, !cmd, event.keyCode == 126 { // ⇧Up
+            extendBatch(to: selectedIndex - 1)
+            moveSelection(-1)
             return true
         }
 
@@ -540,7 +633,9 @@ final class PanelViewModel: ObservableObject {
         case 126: // Up
             moveSelection(-1); return true
         case 36, 76: // Return / numpad Enter
-            if let entry = selectedEntry {
+            if !batchedIDs.isEmpty {
+                actions.pasteBatch(batchedEntries, asPlainText: shift)
+            } else if let entry = selectedEntry {
                 actions.paste(entry, asPlainText: shift)
             }
             return true

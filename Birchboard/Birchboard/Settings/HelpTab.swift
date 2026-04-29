@@ -14,6 +14,7 @@ struct HelpTab: View {
                 Divider()
                 capture
                 browsing
+                multiSelect
                 previews
                 obfuscation
                 transforms
@@ -53,10 +54,13 @@ struct HelpTab: View {
     private static let shortcutRows: [(String, String)] = [
         ("⌘⇧V",       "Open / close the panel"),
         ("↑ / ↓",      "Navigate entries"),
-        ("⏎",          "Paste selected entry"),
+        ("⏎",          "Paste selected entry, or batch when multi-select is active"),
         ("⇧⏎",         "Paste as plain text"),
-        ("⌘1 – ⌘9",    "Quick-paste Nth visible entry"),
+        ("⌘1 – ⌘9",    "Quick-paste Nth visible entry (ignores multi-select)"),
         ("⇧⌘1 – ⇧⌘9",  "Quick-paste Nth as plain text"),
+        ("⇧Space",     "Add / remove the selected row from a multi-paste batch"),
+        ("⇧↑ / ⇧↓",    "Extend the batch contiguously"),
+        ("⌘-click",    "Toggle a row in the batch (mouse equivalent of ⇧Space)"),
         ("⌘T",         "Transform picker"),
         ("⌘S",         "Snippet picker"),
         ("⌘K",         "Action picker"),
@@ -86,6 +90,24 @@ struct HelpTab: View {
             bullet("⌘1 – ⌘9 quick-paste the Nth visible row; the hint chip is shown inline on the first nine rows.")
             bullet("Rows detected as code (17 languages) show a language chip next to the source app.")
             bullet("⌘P to pin, ⌘⌫ to delete, Esc to dismiss.")
+        }
+    }
+
+    private var multiSelect: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            sectionHeader("Multi-paste")
+            Text("Gather several entries and paste them together with a configurable delimiter. Useful for stitching IDs, URLs, names, or scratch values that piled up across a session.")
+                .foregroundStyle(.secondary)
+                .font(.system(size: 11))
+                .padding(.bottom, 2)
+                .fixedSize(horizontal: false, vertical: true)
+            bullet("⇧Space toggles the focused row in the batch — a numbered chip and accent bar mark the selected rows.")
+            bullet("⇧↑ / ⇧↓ extends the batch contiguously, like Finder. ⌘-click is the mouse equivalent of ⇧Space.")
+            bullet("⏎ pastes the batch joined by the delimiter (default newline). The original ⏎ behaviour for a single row is unchanged when the batch is empty.")
+            bullet("⌘1 – ⌘9 still pastes that single row directly, ignoring an active batch.")
+            bullet("Delimiter is configurable in Settings → General → Multi-select. Use \\n for newline, \\t for tab.")
+            bullet("Image and obfuscated rows beep on toggle — the first has no plain-text payload, the second would leak its value through concatenation.")
+            bullet("The batch resets every time the panel opens.")
         }
     }
 

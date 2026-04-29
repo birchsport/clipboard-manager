@@ -14,6 +14,12 @@ falls short (nonactivating panels, global hotkeys, focus capture).
 - fzf-style fuzzy search with word-boundary, consecutive-match, and camelCase bonuses.
 - ⏎ pastes with original formatting; ⇧⏎ pastes as plain text; ⌘P pins;
   ⌘⌫ deletes; Esc dismisses.
+- **Multi-paste** — ⇧Space (or ⌘-click) gathers rows into a batch, ⇧↑/⇧↓
+  extends contiguously, ⏎ pastes them joined by a configurable delimiter
+  (default newline; configurable via Settings → General → Multi-select with
+  `\n` / `\t` / `\\` escapes). Selected rows show a numbered chip in
+  insertion order. ⌘1–⌘9 still pastes that single row directly, ignoring
+  an active batch.
 - **⌘O obfuscates** a sensitive entry (passwords you paste daily) — the row
   collapses to `🔒 nickname  ••••••••` and the preview / Quick Look refuse
   to render the payload, but ⏎ still pastes the real value. ⌘R re-edits the

@@ -13,6 +13,7 @@ final class Preferences: ObservableObject {
         static let launchAtLogin = "launchAtLogin"
         static let panelOpacity = "panelOpacity"
         static let ignoredAppBundleIDs = "ignoredAppBundleIDs"
+        static let multiSelectDelimiter = "multiSelectDelimiter"
     }
 
     /// Password managers and similar apps we don't want to capture clipboards
@@ -54,6 +55,13 @@ final class Preferences: ObservableObject {
         didSet { defaults.set(ignoredAppBundleIDs, forKey: Keys.ignoredAppBundleIDs) }
     }
 
+    /// Separator inserted between entries when multiple are pasted together.
+    /// Stored as the user-typed string; `\n`, `\t`, and `\\` are parsed at
+    /// paste time so the field can show a compact representation.
+    @Published var multiSelectDelimiter: String {
+        didSet { defaults.set(multiSelectDelimiter, forKey: Keys.multiSelectDelimiter) }
+    }
+
     init() {
         self.retentionCount = (defaults.object(forKey: Keys.retentionCount) as? Int) ?? 1000
         self.retentionDays = (defaults.object(forKey: Keys.retentionDays) as? Int) ?? 90
@@ -64,6 +72,8 @@ final class Preferences: ObservableObject {
         // honour whatever the user has set (including empty list).
         self.ignoredAppBundleIDs = (defaults.object(forKey: Keys.ignoredAppBundleIDs) as? [String])
             ?? Self.defaultIgnoredAppBundleIDs
+        self.multiSelectDelimiter =
+            (defaults.object(forKey: Keys.multiSelectDelimiter) as? String) ?? "\\n"
     }
 
     func resetIgnoredAppsToDefaults() {

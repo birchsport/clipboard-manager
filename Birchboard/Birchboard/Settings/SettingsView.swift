@@ -53,6 +53,24 @@ private struct GeneralTab: View {
                 Toggle("Restore clipboard after paste",
                        isOn: $preferences.restoreClipboardAfterPaste)
             }
+            Section("Multi-select") {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("Delimiter between entries")
+                        Spacer()
+                        TextField("", text: $preferences.multiSelectDelimiter)
+                            .textFieldStyle(.roundedBorder)
+                            .font(.system(size: 12, design: .monospaced))
+                            .frame(width: 120)
+                    }
+                    Text("Parses as: \(parsedDelimiterDescription)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text("Select multiple entries with ⇧Space (or ⌘-click) and press ⏎ to paste them joined by this string. Use \\n for newline, \\t for tab, \\\\ for backslash.")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                }
+            }
             Section("Appearance") {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
@@ -83,6 +101,31 @@ private struct GeneralTab: View {
         }
         .formStyle(.grouped)
         .padding()
+    }
+
+    /// Friendly description of the multi-select delimiter as it'll be parsed
+    /// at paste time. Empty string and pure whitespace get explicit labels so
+    /// the user isn't staring at a blank field wondering whether anything will
+    /// happen.
+    private var parsedDelimiterDescription: String {
+        let raw = preferences.multiSelectDelimiter
+        if raw.isEmpty { return "empty (entries concatenated)" }
+        let parsed = PanelController.parseDelimiter(raw)
+        switch parsed {
+        case "\n": return "newline"
+        case "\t": return "tab"
+        case "\n\n": return "blank line"
+        case " ": return "space"
+        case "": return "empty (entries concatenated)"
+        default:
+            // Show the literal characters in quotes; replace common whitespace
+            // with visible escapes so what the user sees matches what they'll
+            // get on paste.
+            let visible = parsed
+                .replacingOccurrences(of: "\n", with: "\\n")
+                .replacingOccurrences(of: "\t", with: "\\t")
+            return "“\(visible)”"
+        }
     }
 
     private var updatesFooter: String {

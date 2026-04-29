@@ -89,8 +89,21 @@
           <li>Fuzzy search as you type.</li>
           <li>Type-keyword search — <code>image</code> finds image entries, <code>file</code> finds file references, <code>400x300</code> finds that specific image.</li>
           <li><kbd>⌘1</kbd> – <kbd>⌘9</kbd> quick-pastes the Nth visible entry; the first nine rows show their shortcut inline.</li>
+          <li><kbd>⇧Space</kbd> (or <kbd>⌘</kbd>-click) gathers rows into a batch, <kbd>⏎</kbd> pastes them joined by a configurable delimiter — see Multi-paste below.</li>
           <li>Code rows get a language chip. 17 detected: JSON, YAML, XML, HTML, Markdown, Swift, Java, JavaScript, TypeScript, Python, Go, Rust, Ruby, SQL, Shell, Dockerfile, CSS.</li>
           <li><kbd>⌘P</kbd> to pin, <kbd>⌘⌫</kbd> to delete.</li>
+        </ul>
+      </article>
+
+      <article class="feature">
+        <h3>Multi-paste</h3>
+        <p>Stitch together a handful of clipboard entries — IDs, URLs, names, scratch values — and paste them in one shot, joined by whatever delimiter you like.</p>
+        <ul>
+          <li><kbd>⇧Space</kbd> toggles the focused row in a batch; a numbered chip and accent bar mark the selected rows in insertion order.</li>
+          <li><kbd>⇧↑</kbd> / <kbd>⇧↓</kbd> extends the batch contiguously, like Finder. <kbd>⌘</kbd>-click is the mouse equivalent of <kbd>⇧Space</kbd>.</li>
+          <li><kbd>⏎</kbd> pastes the batch joined by the delimiter. Default is newline; configurable in Settings → General → Multi-select with <code>\n</code> / <code>\t</code> / <code>\\</code> escapes.</li>
+          <li><kbd>⌘1</kbd> – <kbd>⌘9</kbd> still pastes that single row directly, ignoring an active batch — keeps the quick-paste muscle memory intact.</li>
+          <li>Image and obfuscated rows beep on toggle: the first has no plain-text payload, the second would leak its value through concatenation.</li>
         </ul>
       </article>
 
@@ -204,8 +217,11 @@
         <tr><td><kbd>↑</kbd> <kbd>↓</kbd></td><td>Navigate entries</td></tr>
         <tr><td><kbd>⏎</kbd></td><td>Paste selected entry</td></tr>
         <tr><td><kbd>⇧⏎</kbd></td><td>Paste as plain text</td></tr>
-        <tr><td><kbd>⌘1</kbd> – <kbd>⌘9</kbd></td><td>Quick-paste Nth visible entry</td></tr>
+        <tr><td><kbd>⌘1</kbd> – <kbd>⌘9</kbd></td><td>Quick-paste Nth visible entry (ignores multi-select)</td></tr>
         <tr><td><kbd>⇧⌘1</kbd> – <kbd>⇧⌘9</kbd></td><td>Quick-paste Nth as plain text</td></tr>
+        <tr><td><kbd>⇧Space</kbd></td><td>Add / remove the selected row from a multi-paste batch</td></tr>
+        <tr><td><kbd>⇧↑</kbd> <kbd>⇧↓</kbd></td><td>Extend the batch contiguously</td></tr>
+        <tr><td><kbd>⌘</kbd>-click</td><td>Toggle a row in the batch (mouse equivalent of <kbd>⇧Space</kbd>)</td></tr>
         <tr><td><kbd>⌘T</kbd></td><td>Transform picker</td></tr>
         <tr><td><kbd>⌘S</kbd></td><td>Snippet picker</td></tr>
         <tr><td><kbd>⌘K</kbd></td><td>Action picker</td></tr>

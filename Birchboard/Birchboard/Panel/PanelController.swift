@@ -104,6 +104,50 @@ final class PanelController: NSObject, NSWindowDelegate {
         }
     }
 
+    /// Concatenate `entries` with the user's configured multi-select delimiter
+    /// and route through the normal paste flow as a single synthetic text
+    /// entry. Used by ⏎ when the panel has a non-empty batch.
+    func pasteBatch(_ entries: [ClipEntry], asPlainText: Bool) {
+        guard !entries.isEmpty else { return }
+        let delimiter = Self.parseDelimiter(services.preferences.multiSelectDelimiter)
+        let joined = entries
+            .map { $0.kind.plainText }
+            .joined(separator: delimiter)
+        let synthetic = ClipEntry(
+            id: 0,
+            kind: .text(joined),
+            createdAt: Date(),
+            source: nil,
+            pinnedAt: nil
+        )
+        // Clear the batch so the panel reopens fresh next time.
+        hostingView?.rootView.viewModel.clearBatch()
+        paste(synthetic, asPlainText: asPlainText)
+    }
+
+    /// Expand `\n`, `\t`, and `\\` escape sequences in a delimiter string so
+    /// users can type a visible value in Settings instead of pasting literal
+    /// whitespace. Any other backslash is treated as a literal backslash.
+    static func parseDelimiter(_ raw: String) -> String {
+        var out = ""
+        var i = raw.startIndex
+        while i < raw.endIndex {
+            let c = raw[i]
+            let next = raw.index(after: i)
+            if c == "\\", next < raw.endIndex {
+                switch raw[next] {
+                case "n": out.append("\n"); i = raw.index(after: next); continue
+                case "t": out.append("\t"); i = raw.index(after: next); continue
+                case "\\": out.append("\\"); i = raw.index(after: next); continue
+                default: break
+                }
+            }
+            out.append(c)
+            i = next
+        }
+        return out
+    }
+
     func togglePin(_ entry: ClipEntry) {
         try? services.repository.togglePin(id: entry.id)
     }
@@ -187,6 +231,10 @@ final class PanelActions: ObservableObject {
 
     func paste(_ entry: ClipEntry, asPlainText: Bool) {
         controller?.paste(entry, asPlainText: asPlainText)
+    }
+
+    func pasteBatch(_ entries: [ClipEntry], asPlainText: Bool) {
+        controller?.pasteBatch(entries, asPlainText: asPlainText)
     }
 
     func dismiss() { controller?.hide() }

@@ -220,7 +220,11 @@ private struct EntryListView: View {
     private func row(for entry: ClipEntry, index: Int) -> some View {
         let selected = index == viewModel.selectedIndex
         let shortcut = index < 9 ? "⌘\(index + 1)" : nil
-        EntryRow(entry: entry, isSelected: selected, shortcutHint: shortcut)
+        let batchOrder = viewModel.batchedOrder.firstIndex(of: entry.id).map { $0 + 1 }
+        EntryRow(entry: entry,
+                 isSelected: selected,
+                 shortcutHint: shortcut,
+                 batchOrder: batchOrder)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(selected ? Color.accentColor.opacity(0.18) : .clear)
@@ -229,6 +233,12 @@ private struct EntryListView: View {
             .onTapGesture(count: 2) {
                 viewModel.actions.paste(entry, asPlainText: false)
             }
+            .simultaneousGesture(
+                TapGesture().modifiers(.command).onEnded {
+                    viewModel.selectedIndex = index
+                    viewModel.toggleBatch(entryID: entry.id)
+                }
+            )
             .simultaneousGesture(TapGesture().onEnded {
                 viewModel.selectedIndex = index
             })
@@ -241,9 +251,19 @@ private struct EntryRow: View {
     /// Non-nil for the first nine entries — rendered as a small right-aligned
     /// badge so the ⌘N quick-select is discoverable.
     let shortcutHint: String?
+    /// 1-based position in the multi-paste batch, or nil if not in the batch.
+    /// When set, the right-edge badge shows this number and the row gets a
+    /// leading accent bar so it reads as "selected for batch" at a glance.
+    let batchOrder: Int?
 
     var body: some View {
         HStack(spacing: 8) {
+            // Leading accent bar — visible only when this row is in the batch.
+            // Always reserves the same width so non-batched rows don't shift.
+            Rectangle()
+                .fill(batchOrder != nil ? Color.accentColor : .clear)
+                .frame(width: 2)
+                .clipShape(Capsule())
             icon
                 .frame(width: 18, height: 18)
             VStack(alignment: .leading, spacing: 2) {
@@ -275,7 +295,11 @@ private struct EntryRow: View {
                         .font(.system(size: 10))
                 }
             }
-            if let shortcutHint {
+            // Batch badge takes priority over the ⌘N shortcut hint — when a
+            // row is in the batch, that's the more relevant signal.
+            if let batchOrder {
+                batchBadge(batchOrder)
+            } else if let shortcutHint {
                 shortcutBadge(shortcutHint)
             }
         }
@@ -330,6 +354,21 @@ private struct EntryRow: View {
             .overlay(
                 RoundedRectangle(cornerRadius: 4)
                     .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
+            )
+    }
+
+    /// Numbered chip shown when the row is part of the multi-paste batch.
+    /// Rendered with the accent fill so it reads distinctly from the muted
+    /// `⌘N` shortcut hint.
+    private func batchBadge(_ position: Int) -> some View {
+        Text("\(position)")
+            .font(.system(size: 10, weight: .semibold, design: .monospaced))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.accentColor)
             )
     }
 
