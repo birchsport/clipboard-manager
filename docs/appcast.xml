@@ -87,5 +87,25 @@
             type="application/octet-stream"
         />
     </item>
+    <item>
+        <title>Version 0.2.5</title>
+        <pubDate>Wed, 29 Apr 2026 16:43:14 +0000</pubDate>
+        <sparkle:version>7</sparkle:version>
+        <sparkle:shortVersionString>0.2.5</sparkle:shortVersionString>
+        <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+        <link>https://github.com/birchsport/clipboard-manager/releases/tag/v0.2.5</link>
+        <description><![CDATA[
+<ul>
+    <li>Add Predictive Paste easter egg</li>
+</ul>
+            <p style="font-size:smaller;color:#888;">Full notes: <a href="https://github.com/birchsport/clipboard-manager/releases/tag/v0.2.5">v0.2.5 on GitHub</a>.</p>
+        ]]></description>
+        <enclosure
+            url="https://github.com/birchsport/clipboard-manager/releases/download/v0.2.5/Birchboard-0.2.5.dmg"
+            sparkle:edSignature="FDZxHQIGe7icjs+9B9U74Qml6x4ZPuxm2CN10oLG817An/gj7XpeVSYyxxLYKqxtQyX41H9s7fPAZkAKGfHPDw=="
+            length="5181725"
+            type="application/octet-stream"
+        />
+    </item>
     </channel>
 </rss>
