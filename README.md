@@ -73,6 +73,11 @@ falls short (nonactivating panels, global hotkeys, focus capture).
 - **Auto-updates via [Sparkle](https://sparkle-project.org)** — background
   check every 24 hours, manual "Check for Updates…" in the menu-bar, feed
   hosted on GitHub Pages. Updates are EdDSA-signed and notarized.
+- **Predictive Paste** (off by default, easter egg) — a separate global
+  hotkey (default ⌃⌥⌘P) pastes a random silly quote into the frontmost
+  app. Nothing about it is actually predictive. Toggle in Settings →
+  General → Easter Eggs; rebind in Settings → Hotkey. Quotes do not enter
+  history.
 
 ## Build
 

@@ -83,6 +83,12 @@ private struct GeneralTab: View {
                     Slider(value: $preferences.panelOpacity, in: 0.3...1.0)
                 }
             }
+            Section("Easter Eggs") {
+                Toggle("Predictive Paste", isOn: $preferences.predictivePasteEnabled)
+                Text("Pastes a random silly quote when the Predictive Paste hotkey fires. Configure the hotkey in the Hotkey tab.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
             Section("Updates") {
                 Toggle("Automatically check for updates",
                        isOn: $updater.automaticallyChecks)
@@ -161,6 +167,7 @@ private struct HotkeyTab: View {
     var body: some View {
         Form {
             KeyboardShortcuts.Recorder("Toggle clipboard panel:", name: .togglePanel)
+            KeyboardShortcuts.Recorder("Predictive Paste:", name: .predictivePaste)
         }
         .padding()
     }

@@ -138,6 +138,10 @@ Per-entry "screen-share safety" flag. Pin's exact shape: a nullable timestamp + 
 
 `ClipboardReader.read` extracts richest-first: file URLs → images (TIFF/PNG normalized to PNG + blob-stored) → RTF (with plain-text projection) → plain text.
 
+### Predictive Paste (easter egg)
+
+`EasterEgg/PredictivePaste.swift` is a tiny opt-in feature: a second global hotkey (default `⌃⌥⌘P`, registered as `KeyboardShortcuts.Name.predictivePaste`) pastes a random hardcoded quote into the frontmost app, no panel involved. The handler in `AppDelegate` is gated on `Preferences.predictivePasteEnabled` (off by default) so the registered shortcut is a no-op until the user opts in via Settings → General → Easter Eggs. The flow captures `NSWorkspace.shared.frontmostApplication` synchronously, writes the quote directly to `NSPasteboard.general`, calls `ClipboardWatcher.markSelfProduced` so the watcher does not ingest the quote into history, then reuses `ClipboardWriter.synthesizeCmdV` (and optionally `snapshot` / `restore`) for the rest of the paste choreography. Adding a new quote = appending to the `PredictivePasteQuotes.all` array — no other change required.
+
 ### Services container
 
 `Services` on `AppDelegate` is `@MainActor` and owns `preferences`, `snippetStore`, `database`, `repository`, `blobStore`. `database / repository / blobStore` are implicitly-unwrapped until `bootstrap()` runs from `applicationDidFinishLaunching`. Wired into the SwiftUI environment at the Settings scene construction:

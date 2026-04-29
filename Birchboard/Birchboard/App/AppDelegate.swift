@@ -36,6 +36,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         KeyboardShortcuts.onKeyDown(for: .togglePanel) { [weak controller] in
             controller?.toggle()
         }
+        KeyboardShortcuts.onKeyDown(for: .predictivePaste) { [weak self] in
+            guard let self else { return }
+            guard self.services.preferences.predictivePasteEnabled else { return }
+            PredictivePaste.fire(preferences: self.services.preferences)
+        }
 
         // 5. Retention sweep on launch and then hourly.
         services.repository.runRetentionSweep(preferences: services.preferences)

@@ -20,6 +20,7 @@ struct HelpTab: View {
                 transforms
                 snippets
                 actions
+                predictivePaste
             }
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -198,6 +199,20 @@ struct HelpTab: View {
             bullet("Email → Compose Mail to…")
             bullet("Phone → Call with FaceTime.")
             bullet("Hex color → Paste as `rgb()`, Paste as `hsl()`.")
+        }
+    }
+
+    private var predictivePaste: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            sectionHeader("Predictive Paste (easter egg)")
+            Text("A silly opt-in extra: a global hotkey pastes a random humorous quote into whatever app is frontmost. Nothing about it is actually predictive — that's the joke.")
+                .foregroundStyle(.secondary)
+                .font(.system(size: 11))
+                .padding(.bottom, 2)
+                .fixedSize(horizontal: false, vertical: true)
+            bullet("Off by default. Enable in Settings → General → Easter Eggs.")
+            bullet("Default hotkey ⌃⌥⌘P; rebind in Settings → Hotkey.")
+            bullet("Quotes are not added to history.")
         }
     }
 

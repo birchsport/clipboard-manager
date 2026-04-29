@@ -14,6 +14,7 @@ final class Preferences: ObservableObject {
         static let panelOpacity = "panelOpacity"
         static let ignoredAppBundleIDs = "ignoredAppBundleIDs"
         static let multiSelectDelimiter = "multiSelectDelimiter"
+        static let predictivePasteEnabled = "predictivePasteEnabled"
     }
 
     /// Password managers and similar apps we don't want to capture clipboards
@@ -62,6 +63,12 @@ final class Preferences: ObservableObject {
         didSet { defaults.set(multiSelectDelimiter, forKey: Keys.multiSelectDelimiter) }
     }
 
+    /// Predictive Paste easter egg. When on, the predictive-paste hotkey
+    /// pastes a random silly quote into the frontmost app.
+    @Published var predictivePasteEnabled: Bool {
+        didSet { defaults.set(predictivePasteEnabled, forKey: Keys.predictivePasteEnabled) }
+    }
+
     init() {
         self.retentionCount = (defaults.object(forKey: Keys.retentionCount) as? Int) ?? 1000
         self.retentionDays = (defaults.object(forKey: Keys.retentionDays) as? Int) ?? 90
@@ -74,6 +81,7 @@ final class Preferences: ObservableObject {
             ?? Self.defaultIgnoredAppBundleIDs
         self.multiSelectDelimiter =
             (defaults.object(forKey: Keys.multiSelectDelimiter) as? String) ?? "\\n"
+        self.predictivePasteEnabled = defaults.bool(forKey: Keys.predictivePasteEnabled)
     }
 
     func resetIgnoredAppsToDefaults() {
