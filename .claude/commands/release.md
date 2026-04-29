@@ -29,17 +29,48 @@ Resolve `$ARGUMENTS`:
 
 State the resolved versions back to the user before proceeding (e.g. "Bumping 0.2.1 → 0.2.2, build 3 → 4").
 
+## 1.5 Preview release notes (and offer override)
+
+Sparkle's "Update Available" dialog renders the appcast `<description>` as HTML. The release workflow auto-derives that content from the commit log between the previous tag and this one, filtered to drop the `Bump to X.Y.Z` and `Update appcast` housekeeping commits. Show the user a preview so they can confirm it reads well.
+
+```sh
+LATEST_TAG=$(git describe --tags --abbrev=0)
+git log --no-merges --pretty='format:- %s' "$LATEST_TAG..HEAD" \
+    | grep -vE '^- Bump to |^- Update appcast'
+```
+
+If the preview is empty (rare — happens when every commit since the last tag is housekeeping), warn the user and confirm they really want to release; the workflow's fallback is "Maintenance release." which is fine but should be a deliberate choice.
+
+Then ask: **keep the auto-derived notes, or write a custom override?**
+
+- **Auto-derived (default)** — do nothing extra. The workflow will format the bullets above as `<ul><li>…</li></ul>` and embed them in the appcast.
+- **Override** — drop a hand-written HTML file at `docs/release-notes/<MARKETING_VERSION>.html` (no `v` prefix; e.g. `docs/release-notes/0.3.0.html`). The workflow uses it verbatim. Useful when the bullets need a sentence of context, a link, or grouping into "New" / "Fixes" sections.
+
+If the user picks override, write the file. Pre-populate it with the auto-derived bullets converted to HTML so they have a starting point. A sensible structure is:
+
+```html
+<p>Headline of the release in a sentence.</p>
+<ul>
+    <li><strong>Feature name</strong> — what it does and why it's useful.</li>
+    <li>Smaller fix or polish item.</li>
+</ul>
+```
+
+The override file gets staged alongside `Birchboard/project.yml` in step 2's commit so the workflow sees it at the tagged ref.
+
 ## 2. Edit, commit, push
 
-Edit `Birchboard/project.yml`, replacing both fields. Stage **only** that file:
+Edit `Birchboard/project.yml`, replacing both fields. Stage `project.yml` (and the `docs/release-notes/<MARKETING_VERSION>.html` override, if step 1.5 produced one):
 
 ```sh
 git add Birchboard/project.yml
-git commit -m "Bump to X.Y.Z"   # use real version
+# Plus, if a release-notes override was authored in step 1.5:
+git add docs/release-notes/X.Y.Z.html
+git commit -m "Bump to X.Y.Z"
 git push origin main
 ```
 
-The commit must contain only the version bump — nothing else. If `git status` after the edit shows any other modified file, abort and ask the user.
+The commit must contain **only** the version bump and (optionally) the matching release-notes override — nothing else. If `git status` after the edit shows any other modified file, abort and ask the user.
 
 ## 3. Annotated tag + push
 

@@ -192,6 +192,70 @@ jobs:
           SIG=$(echo "$RAW" | sed -E 's/.*sparkle:edSignature="([^"]+)".*/\1/')
           echo "signature=$SIG" >> "$GITHUB_OUTPUT"
 
+      - name: Compose release notes
+        id: notes
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          # Sparkle renders the appcast item's <description> as HTML in its
+          # "Update Available" dialog. Two sources, in priority order:
+          #
+          #   1. docs/release-notes/<version>.html — verbatim override the
+          #      user committed alongside the version bump. Used when the
+          #      auto-derived bullets aren't expressive enough.
+          #   2. git log between the previous tag and this one, filtered to
+          #      drop the "Bump to X.Y.Z" and "Update appcast" housekeeping
+          #      commits. One <li> per surviving subject.
+          OVERRIDE="docs/release-notes/${VERSION}.html"
+          OUT="$RUNNER_TEMP/release-notes.html"
+
+          if [ -f "$OVERRIDE" ]; then
+              echo "Using override: $OVERRIDE"
+              cp "$OVERRIDE" "$OUT"
+          else
+              # `git describe --abbrev=0 $TAG^` resolves the most recent
+              # ancestor tag of the tagged commit's parent. Equivalent to
+              # "the tag right before this one in history."
+              PREV=$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || true)
+              echo "Auto-deriving notes from commit log${PREV:+ since $PREV}"
+
+              if [ -z "$PREV" ]; then
+                  RANGE="$TAG"
+              else
+                  RANGE="$PREV..$TAG"
+              fi
+
+              # Subjects → escaped <li> lines. We script in a temp file so
+              # the subjects can flow on stdin without colliding with the
+              # heredoc that supplies the script source. The python step
+              # both filters housekeeping commits AND escapes HTML special
+              # chars so a subject like "Allow & in JWT payloads" doesn't
+              # break the appcast XML.
+              SCRIPT="$RUNNER_TEMP/compose-notes.py"
+              cat > "$SCRIPT" <<'PY'
+          import html, sys
+          items = []
+          for s in sys.stdin.read().splitlines():
+              s = s.strip()
+              if not s: continue
+              if s.startswith("Bump to "): continue
+              if s.startswith("Update appcast"): continue
+              items.append("    <li>" + html.escape(s) + "</li>")
+          if items:
+              print("<ul>")
+              print("\n".join(items))
+              print("</ul>")
+          else:
+              print("<p>Maintenance release.</p>")
+          PY
+              git log --no-merges --pretty='format:%s' $RANGE \
+                  | python3 "$SCRIPT" > "$OUT"
+          fi
+
+          echo "Composed release notes:"
+          cat "$OUT"
+          echo "path=$OUT" >> "$GITHUB_OUTPUT"
+
       - name: Build updated appcast entry (staged in tmp)
         id: appcast
         env:
@@ -200,12 +264,14 @@ jobs:
           DMG_FILENAME: ${{ steps.dmg.outputs.filename }}
           DMG_SIZE: ${{ steps.dmg.outputs.size }}
           SIGNATURE: ${{ steps.sparkle.outputs.signature }}
+          NOTES_PATH: ${{ steps.notes.outputs.path }}
         run: |
           # Stage the new appcast to $RUNNER_TEMP so it survives the
           # branch switch in the next step.
           STAGED="$RUNNER_TEMP/appcast.xml"
           PUBDATE=$(LC_TIME=en_US.UTF-8 date "+%a, %d %b %Y %H:%M:%S %z")
           DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/v$VERSION/$DMG_FILENAME"
+          NOTES_HTML=$(cat "$NOTES_PATH")
 
           ITEM=$(cat <<EOF
               <item>
@@ -215,7 +281,10 @@ jobs:
                   <sparkle:shortVersionString>$VERSION</sparkle:shortVersionString>
                   <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
                   <link>https://github.com/${{ github.repository }}/releases/tag/v$VERSION</link>
-                  <description><![CDATA[See the <a href="https://github.com/${{ github.repository }}/releases/tag/v$VERSION">release notes on GitHub</a>.]]></description>
+                  <description><![CDATA[
+          $NOTES_HTML
+                      <p style="font-size:smaller;color:#888;">Full notes: <a href="https://github.com/${{ github.repository }}/releases/tag/v$VERSION">v$VERSION on GitHub</a>.</p>
+                  ]]></description>
                   <enclosure
                       url="$DOWNLOAD_URL"
                       sparkle:edSignature="$SIGNATURE"
