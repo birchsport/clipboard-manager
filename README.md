@@ -249,21 +249,6 @@ Birchboard/
     └── Birchboard.entitlements         # generated (sandbox off)
 ```
 
-## Planned but not yet built
-
-- **Auto-expanding snippets** — type a trigger (e.g. `;sig`) anywhere and
-  have it expand inline, the way TextExpander / Alfred snippets work.
-  Requires a global keystroke monitor (AX-trust-bound), deferred.
-- **OCR on image entries** — run `VNRecognizeTextRequest` against a
-  captured image and drop the text onto the clipboard.
-- **iCloud / LAN sync** across your own Macs.
-- **Scoped clipboard profiles** — separate histories for "work" and
-  "personal", switched manually or by active app.
-- **Per-app paste rules** — e.g. always paste plain into Slack.
-
-See [`FUTURE_IDEAS.md`](FUTURE_IDEAS.md) for the full shortlist with
-notes on effort and design.
-
 ## License
 
 Birchboard is released under the [MIT License](LICENSE).
