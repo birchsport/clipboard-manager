@@ -20,6 +20,11 @@ falls short (nonactivating panels, global hotkeys, focus capture).
   `\n` / `\t` / `\\` escapes). Selected rows show a numbered chip in
   insertion order. ⌘1–⌘9 still pastes that single row directly, ignoring
   an active batch.
+- **Recently used floats to the top** — pasting an entry from history
+  bumps it to the top of the unpinned list (under pins), so the rows you
+  actually use stay closest to home. Mirrors the existing "re-copy bumps
+  an entry" behaviour. Multi-paste bumps every constituent; transforms /
+  snippets / actions leave the source entry's position alone.
 - **⌘O obfuscates** a sensitive entry (passwords you paste daily) — the row
   collapses to `🔒 nickname  ••••••••` and the preview / Quick Look refuse
   to render the payload, but ⏎ still pastes the real value. ⌘R re-edits the

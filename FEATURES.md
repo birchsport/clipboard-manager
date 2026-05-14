@@ -30,6 +30,12 @@ System requirements: macOS 14 (Sonoma) or newer. Apple Silicon or Intel.
 - **Type-keyword search**: `image` matches image entries, `file` matches
   file-reference entries, image dimensions (`400x300` / `400×300`) match
   too, and filename fragments match file entries without needing full paths.
+- **Recently used floats to the top** — pasting an entry from history
+  bumps it to the top of the unpinned list (under pins), mirroring the
+  existing "re-copy bumps the existing row" behaviour. Multi-paste bumps
+  every constituent; transforms / snippets / actions leave the source
+  entry's position alone since the pasted payload is derived, not the row
+  itself.
 - **⌘1 – ⌘9 quick-paste** the Nth visible entry. ⇧⌘N pastes plain text.
   The first nine rows show their shortcut inline so you don't have to
   memorise the positions.

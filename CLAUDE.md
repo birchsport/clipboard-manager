@@ -68,10 +68,11 @@ The panel is `.nonactivatingPanel` so its parent app never becomes frontmost —
 `PanelController.paste(entry, asPlainText:)` order matters:
 1. Optionally snapshot the pasteboard (for restore-after-paste).
 2. Write the entry via `ClipboardWriter.write` (marks the change count as self-produced so the watcher ignores it).
-3. Activate `previousApp` **before** hiding the panel (so WindowServer has a stable frontmost).
-4. Hide the panel.
-5. 120ms later, `CGEvent.post` a `⌘V` at the `cgAnnotatedSessionEventTap` (not `cghidEventTap` — Electron/Qt apps sometimes reject HID-tap events).
-6. 700ms later, if snapshotting, restore.
+3. Bump the entry's `created_at` via `EntryRepository.bumpUsage(ids:)` so it re-sorts to the top of unpinned the next time the panel opens. Ephemeral `id == 0` (transforms / snippets / actions / the synthetic batch payload) is filtered inside the mutator and skipped — derivative pastes don't bump the source. `pasteBatch` bumps all constituent ids up front before routing through this `paste` call.
+4. Activate `previousApp` **before** hiding the panel (so WindowServer has a stable frontmost).
+5. Hide the panel.
+6. 120ms later, `CGEvent.post` a `⌘V` at the `cgAnnotatedSessionEventTap` (not `cghidEventTap` — Electron/Qt apps sometimes reject HID-tap events).
+7. 700ms later, if snapshotting, restore.
 
 `ClipboardWatcher` tracks self-produced change counts in a small LRU set so pasting doesn't re-ingest.
 
@@ -112,7 +113,7 @@ Per-release steps + troubleshooting notes live in `RELEASE_PROCESS.md` at the re
 
 `Storage/` uses GRDB:
 - `Database` — single table `entries` with flattened columns per `EntryKind` case. Migrations: `v1_entries` creates the table; `v2_obfuscation` adds nullable `obfuscated_at` (timestamp) and `obfuscation_nickname` (text) columns. Both are additive; old DBs migrate forward without data loss.
-- `EntryRepository` — the **only** read/write gateway. Marked `@unchecked Sendable` because GRDB's `DatabasePool` is thread-safe and we need to call it from `Task.detached` for export/import. Publishes a `PassthroughSubject<Void, Never>` named `changes` that the view model subscribes to. `togglePin` / `toggleObfuscation` / `setObfuscationNickname` are sibling mutators; toggling obfuscation off clears the nickname so re-obfuscating later starts fresh. Retention sweeps and `clearUnpinned` skip rows with `pinned_at IS NOT NULL OR obfuscated_at IS NOT NULL` — obfuscated entries are user-curated, like pins.
+- `EntryRepository` — the **only** read/write gateway. Marked `@unchecked Sendable` because GRDB's `DatabasePool` is thread-safe and we need to call it from `Task.detached` for export/import. Publishes a `PassthroughSubject<Void, Never>` named `changes` that the view model subscribes to. `togglePin` / `toggleObfuscation` / `setObfuscationNickname` / `bumpUsage` are sibling mutators; toggling obfuscation off clears the nickname so re-obfuscating later starts fresh. `bumpUsage(ids:)` sets `created_at = now` on one or more rows so paste-from-history mirrors the re-copy bump in `upsert`; ephemeral `id == 0` is filtered inside the mutator so callers don't have to. Retention sweeps and `clearUnpinned` skip rows with `pinned_at IS NOT NULL OR obfuscated_at IS NOT NULL` — obfuscated entries are user-curated, like pins.
 - `BlobStore` — content-addressed image blobs at `~/Library/Application Support/Birchboard/blobs/<sha256>.png`. Pruned during retention sweeps.
 - `HistoryArchive` — Codable JSON export/import, images inlined as base64. Dedup on import is by `dedup_hash`. Round-trips `obfuscatedAt` and `obfuscationNickname` so backups preserve the hidden state. The synthesized Codable for these `T?` fields is missing-key tolerant, so older v1 archives still import (their obfuscation fields land as nil).
 
