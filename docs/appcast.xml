@@ -107,5 +107,26 @@
             type="application/octet-stream"
         />
     </item>
+    <item>
+        <title>Version 0.2.6</title>
+        <pubDate>Thu, 14 May 2026 20:32:38 +0000</pubDate>
+        <sparkle:version>8</sparkle:version>
+        <sparkle:shortVersionString>0.2.6</sparkle:shortVersionString>
+        <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+        <link>https://github.com/birchsport/clipboard-manager/releases/tag/v0.2.6</link>
+        <description><![CDATA[
+<p>Quality-of-life refresh for the panel.</p>
+<ul>
+    <li><strong>Recently used surfaces first</strong> &mdash; pasting an entry from history now bumps it to the top of the unpinned list, mirroring the behaviour you already get when re-copying the same content.</li>
+</ul>
+            <p style="font-size:smaller;color:#888;">Full notes: <a href="https://github.com/birchsport/clipboard-manager/releases/tag/v0.2.6">v0.2.6 on GitHub</a>.</p>
+        ]]></description>
+        <enclosure
+            url="https://github.com/birchsport/clipboard-manager/releases/download/v0.2.6/Birchboard-0.2.6.dmg"
+            sparkle:edSignature="ku7VgyK+WuA/ih5yXEc8CkH5lmxyaxvosMUwemZEoQpjq0pTg1DqSBthG6buNLsPcoIqNrMepzQh+OkgKcMlDA=="
+            length="5184555"
+            type="application/octet-stream"
+        />
+    </item>
     </channel>
 </rss>
