@@ -64,6 +64,25 @@ final class EntryRepository: @unchecked Sendable {
         subject.send()
     }
 
+    /// Bumps `created_at` to now for one or more entries so they re-sort to
+    /// the top of the unpinned list — mirrors the dedup-bump that `upsert`
+    /// already does when the same content is re-copied. Pinned rows sort by
+    /// `pinned_at` so they don't visibly move; the refreshed `created_at`
+    /// only matters if they're later unpinned. Ephemeral ids (== 0) are
+    /// silently skipped so callers don't need to filter synthetic entries.
+    func bumpUsage(ids: [Int64]) throws {
+        let real = ids.filter { $0 != 0 }
+        guard !real.isEmpty else { return }
+        let now = Date()
+        try database.pool.write { db in
+            for id in real {
+                try db.execute(sql: "UPDATE entries SET created_at = ? WHERE id = ?",
+                               arguments: [now, id])
+            }
+        }
+        subject.send()
+    }
+
     func togglePin(id: Int64) throws {
         try database.pool.write { db in
             if let pinned = try Bool.fetchOne(db, sql: "SELECT pinned_at IS NOT NULL FROM entries WHERE id = ?", arguments: [id]) {

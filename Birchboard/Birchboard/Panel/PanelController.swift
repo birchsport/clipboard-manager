@@ -80,6 +80,12 @@ final class PanelController: NSObject, NSWindowDelegate {
 
         ClipboardWriter.write(entry, asPlainText: asPlainText)
 
+        // Bump the pasted entry to the top of the unpinned list so the most
+        // recently *used* entries (not just the most recently *captured*)
+        // surface first on the next panel open. No-op for synthetic entries
+        // (transform / snippet / action / batch payloads have id == 0).
+        try? services.repository.bumpUsage(ids: [entry.id])
+
         let target = previousApp
 
         // 1. Hand activation back to the target while our panel is still up.
@@ -109,6 +115,9 @@ final class PanelController: NSObject, NSWindowDelegate {
     /// entry. Used by ⏎ when the panel has a non-empty batch.
     func pasteBatch(_ entries: [ClipEntry], asPlainText: Bool) {
         guard !entries.isEmpty else { return }
+        // Bump every constituent entry — the synthetic batch payload sent
+        // through `paste` has id 0 and will be skipped there.
+        try? services.repository.bumpUsage(ids: entries.map { $0.id })
         let delimiter = Self.parseDelimiter(services.preferences.multiSelectDelimiter)
         let joined = entries
             .map { $0.kind.plainText }
