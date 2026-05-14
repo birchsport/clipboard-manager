@@ -165,6 +165,7 @@ Preferences and SnippetStore are injected separately (not just via Services) bec
 - **UserDefaults keys** versioned when the shape may change (`snippets.v1`). Archive format similarly (`HistoryArchive.currentVersion`).
 - **LOG prefix** `"Birchboard: "` for all `NSLog` calls so the app's lines stand out in Console.
 - User-facing settings live on `Preferences` (a single `ObservableObject`); `@Published` setters write through to `UserDefaults` in `didSet`.
+- **New user-visible features must update all docs in the same change:** `README.md` (top-level Features list), `FEATURES.md` (canonical feature doc), `docs/index.html` (marketing site — both "At a glance" highlights and the relevant feature card), this `CLAUDE.md` (architecture notes for the implementation), and `Birchboard/Birchboard/Settings/HelpTab.swift` (in-app help — mirrors `FEATURES.md`). Skip a file only for purely internal changes (refactors, bug fixes, build infra) with no user-observable behaviour.
 
 ## Signing / distribution notes
 

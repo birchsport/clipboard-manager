@@ -88,6 +88,7 @@ struct HelpTab: View {
             sectionHeader("Browsing")
             bullet("fzf-style fuzzy search: word-boundary, consecutive-match, and camelCase bonuses.")
             bullet("Type `image` to find image entries, `file` for file references, or image dimensions like `400x300`.")
+            bullet("Recently used floats to the top — pasting an entry bumps it to the top of the unpinned list (under pins), so the rows you actually use stay closest to home.")
             bullet("⌘1 – ⌘9 quick-paste the Nth visible row; the hint chip is shown inline on the first nine rows.")
             bullet("Rows detected as code (17 languages) show a language chip next to the source app.")
             bullet("⌘P to pin, ⌘⌫ to delete, Esc to dismiss.")
