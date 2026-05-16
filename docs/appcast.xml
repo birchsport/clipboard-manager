@@ -128,5 +128,26 @@
             type="application/octet-stream"
         />
     </item>
+    <item>
+        <title>Version 0.2.7</title>
+        <pubDate>Sat, 16 May 2026 02:39:05 +0000</pubDate>
+        <sparkle:version>9</sparkle:version>
+        <sparkle:shortVersionString>0.2.7</sparkle:shortVersionString>
+        <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+        <link>https://github.com/birchsport/clipboard-manager/releases/tag/v0.2.7</link>
+        <description><![CDATA[
+<p>Birchboard now stays out of sight when you share your screen.</p>
+<ul>
+    <li><strong>Hidden from screen capture</strong> &mdash; the clipboard panel is excluded from screenshots, screen recordings, and screen-sharing sessions while staying visible to you. On by default; toggle under Settings &rarr; Privacy &rarr; Screen capture.</li>
+</ul>
+            <p style="font-size:smaller;color:#888;">Full notes: <a href="https://github.com/birchsport/clipboard-manager/releases/tag/v0.2.7">v0.2.7 on GitHub</a>.</p>
+        ]]></description>
+        <enclosure
+            url="https://github.com/birchsport/clipboard-manager/releases/download/v0.2.7/Birchboard-0.2.7.dmg"
+            sparkle:edSignature="2kPQhK6fWtWoe78DcpgE5v3K4BnrUdfmNHmiTWYR/nPvr/dzo+5ucaAl6KUtuzmuTZmHUcYMoOoAwOKuP0yhDg=="
+            length="5194030"
+            type="application/octet-stream"
+        />
+    </item>
     </channel>
 </rss>
