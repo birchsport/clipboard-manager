@@ -192,6 +192,13 @@ private struct PrivacyTab: View {
             Section("Backup") {
                 BackupSection(repository: services.repository)
             }
+            Section("Screen capture") {
+                Toggle("Hide panel from screen capture",
+                       isOn: $preferences.hideFromScreenCapture)
+                Text("Keeps the clipboard panel out of screenshots, screen recordings, and screen-sharing sessions. It stays visible to you. Turn this off if you need to record or screen-share the panel itself. Does not protect against a camera pointed at the screen.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
             Section("Ignored apps") {
                 IgnoredAppsSection(preferences: preferences)
             }

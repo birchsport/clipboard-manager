@@ -15,6 +15,7 @@ final class Preferences: ObservableObject {
         static let ignoredAppBundleIDs = "ignoredAppBundleIDs"
         static let multiSelectDelimiter = "multiSelectDelimiter"
         static let predictivePasteEnabled = "predictivePasteEnabled"
+        static let hideFromScreenCapture = "hideFromScreenCapture"
     }
 
     /// Password managers and similar apps we don't want to capture clipboards
@@ -69,6 +70,14 @@ final class Preferences: ObservableObject {
         didSet { defaults.set(predictivePasteEnabled, forKey: Keys.predictivePasteEnabled) }
     }
 
+    /// When on, the clipboard panel is excluded from screenshots, screen
+    /// recordings, and screen-sharing sessions (`NSWindow.sharingType = .none`).
+    /// On by default — the panel routinely shows secrets. The window-level
+    /// complement to per-entry obfuscation.
+    @Published var hideFromScreenCapture: Bool {
+        didSet { defaults.set(hideFromScreenCapture, forKey: Keys.hideFromScreenCapture) }
+    }
+
     init() {
         self.retentionCount = (defaults.object(forKey: Keys.retentionCount) as? Int) ?? 1000
         self.retentionDays = (defaults.object(forKey: Keys.retentionDays) as? Int) ?? 90
@@ -82,6 +91,11 @@ final class Preferences: ObservableObject {
         self.multiSelectDelimiter =
             (defaults.object(forKey: Keys.multiSelectDelimiter) as? String) ?? "\\n"
         self.predictivePasteEnabled = defaults.bool(forKey: Keys.predictivePasteEnabled)
+        // Default on: privacy-safe out of the box. `defaults.bool` can't
+        // express a true default, so read the object and coalesce (same trick
+        // as `panelOpacity`).
+        self.hideFromScreenCapture =
+            (defaults.object(forKey: Keys.hideFromScreenCapture) as? Bool) ?? true
     }
 
     func resetIgnoredAppsToDefaults() {

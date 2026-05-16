@@ -130,6 +130,8 @@ Per-entry "screen-share safety" flag. Pin's exact shape: a nullable timestamp + 
 - `Panel/PanelViewModel.swift`: ⌘O toggles obfuscation; on toggle-on it enters `.nicknameEditor` mode pre-populated with `""` so the user can name the entry while it's fresh. ⌘R re-edits the nickname on an already-obfuscated entry. ⌘T / ⌘S / ⌘K / ⌘Y all `NSSound.beep()` and short-circuit when `selectedEntry?.isObfuscated == true`.
 - Image / file-URL entries are not obfuscatable (passwords are text); `toggleObfuscationForSelected()` beeps for them.
 
+**Window-level complement — hide panel from screen capture.** `Preferences.hideFromScreenCapture` (key `hideFromScreenCapture`, **default on** — read via `object(forKey:) as? Bool ?? true` since `defaults.bool` can't express a true default, same as `panelOpacity`) drives `panel.sharingType = .none` (vs `.readWrite`). This excludes the whole panel from screenshots / recordings / screen-sharing while leaving it visible locally; orthogonal to per-entry obfuscation (whole window vs one row's value). It's applied controller-side exactly like `panelOpacity`: a `sharingTypeCancellable` Combine `.sink` in `PanelController.init` for live toggling, plus a set in `show()` next to the `alphaValue` line so the first open (before the subscription fires) is covered. `ClipboardPanel.swift` is untouched. Scope is the panel only — Settings window and menu-bar menu keep default sharing. Settings toggle lives in `SettingsView.PrivacyTab` under `Section("Screen capture")`.
+
 ### Clipboard ingestion
 
 `ClipboardWatcher.tick` runs every 0.4s on the main run loop. Skips:

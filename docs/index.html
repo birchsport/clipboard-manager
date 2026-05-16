@@ -62,6 +62,7 @@
       <li><strong>Type-aware actions</strong> with <strong>⌘K</strong> — open URL, reveal file, compose mail, call phone, paste hex as rgb().</li>
       <li><strong>Syntax-highlighted Quick Look</strong> for 17 languages, plus a collapsible <strong>tree view</strong> for JSON / YAML / XML.</li>
       <li><strong>Obfuscate</strong> sensitive entries with <strong>⌘O</strong> — hide the value during screen-shares, paste the real thing on <strong>⏎</strong>.</li>
+      <li><strong>Hidden from screen capture</strong> — the panel is kept out of screenshots, recordings, and screen shares by default, while staying visible to you.</li>
       <li><strong>Local, private</strong> — no cloud, no analytics, no telemetry.</li>
       <li><strong>Auto-updates</strong> via Sparkle — install once, get new versions in the background (EdDSA-signed, notarized).</li>
     </ul>
@@ -209,6 +210,7 @@
         <h3>Privacy &amp; storage</h3>
         <ul>
           <li>Everything local. No cloud, no analytics, no telemetry.</li>
+          <li>Panel hidden from screen capture by default — out of screenshots, recordings, and screen shares (<code>NSWindow.sharingType</code>), still visible to you. Toggle in Settings → Privacy → Screen capture.</li>
           <li>SQLite + content-addressed image blobs at <code>~/Library/Application Support/Birchboard/</code>.</li>
           <li>Clear unpinned / clear all from Settings → Privacy.</li>
           <li>Export / Import — the whole history (images included) as a single JSON file. Re-importing is dedup-safe.</li>

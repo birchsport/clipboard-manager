@@ -30,6 +30,10 @@ falls short (nonactivating panels, global hotkeys, focus capture).
   to render the payload, but ⏎ still pastes the real value. ⌘R re-edits the
   nickname. Search hits the nickname only, so typing the underlying text
   never reveals it. Obfuscated rows are exempt from retention sweeps.
+- **Hidden from screen capture** — the panel is excluded from screenshots,
+  screen recordings, and screen-sharing sessions (it stays visible to you).
+  On by default; the window-level complement to ⌘O. Toggle in Settings →
+  Privacy → Screen capture if you need to record the panel itself.
 - ⌘1–⌘9 quick-pastes the Nth visible entry without arrow-keying. ⇧ combined
   with the digit pastes as plain text.
 - ⌘Y toggles a full-panel **Quick Look** preview of the selected entry

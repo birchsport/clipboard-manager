@@ -135,6 +135,7 @@ struct HelpTab: View {
             bullet("Search hits the nickname only — typing the underlying value won't filter to it.")
             bullet("Transforms / actions / Quick Look are blocked while obfuscated, so the payload is never lexed or rendered.")
             bullet("Obfuscated rows are exempt from retention sweeps (just like pinned).")
+            bullet("Window-level complement: the whole panel is hidden from screenshots, recordings, and screen shares by default (still visible to you). Toggle under Settings → Privacy → Screen capture.")
         }
     }
 

@@ -174,6 +174,14 @@ contain a URL/email/etc.).
   `~/Library/Application Support/Birchboard/`. Delete that folder to fully
   reset.
 - **Clear unpinned** / **Clear all history** buttons.
+- **Hide panel from screen capture** (on by default) — the clipboard panel
+  is excluded from screenshots, screen recordings, and screen-sharing
+  sessions via `NSWindow.sharingType = .none`, while staying visible to you.
+  The window-level complement to ⌘O obfuscation: ⌘O hides one entry's value,
+  this hides the whole panel from anyone watching your screen. Relies on the
+  capturing app using standard macOS capture APIs (effectively all do); it
+  can't stop a camera pointed at the screen. Turn it off if you need to
+  record or screen-share the panel itself.
 - **Ignored apps list** — add / remove / reset-to-defaults.
 - **Export / Import** — the full history, including image bytes, goes into
   a single JSON file via `NSSavePanel`. Import reads the same shape back;

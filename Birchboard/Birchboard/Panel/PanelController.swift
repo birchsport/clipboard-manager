@@ -12,6 +12,7 @@ final class PanelController: NSObject, NSWindowDelegate {
     private var previousApp: NSRunningApplication?
     private var localEventMonitor: Any?
     private var opacityCancellable: AnyCancellable?
+    private var sharingTypeCancellable: AnyCancellable?
 
     /// Published to the content view so it can bubble actions back up (paste etc).
     let actions: PanelActions
@@ -26,6 +27,13 @@ final class PanelController: NSObject, NSWindowDelegate {
         opacityCancellable = services.preferences.$panelOpacity
             .sink { [weak self] value in
                 self?.panel?.alphaValue = CGFloat(value)
+            }
+
+        // Live-apply screen-capture exclusion when the user toggles it in
+        // Settings while the panel is open.
+        sharingTypeCancellable = services.preferences.$hideFromScreenCapture
+            .sink { [weak self] hidden in
+                self?.panel?.sharingType = hidden ? .none : .readWrite
             }
     }
 
@@ -46,6 +54,7 @@ final class PanelController: NSObject, NSWindowDelegate {
         let panel = ensurePanel()
         centerOnActiveScreen(panel)
         panel.alphaValue = CGFloat(services.preferences.panelOpacity)
+        panel.sharingType = services.preferences.hideFromScreenCapture ? .none : .readWrite
 
         installEventMonitor()
         panel.orderFrontRegardless()
