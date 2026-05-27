@@ -363,6 +363,47 @@ struct TrimBordersPerLineTransform: TextTransform {
     }
 }
 
+/// Strips Trino/mysql-style continuation-prompt arrows from each line.
+/// Pasting a multi-line query out of those REPLs leaves every line after
+/// the first prefixed with `    -> `; this removes that prefix while
+/// preserving the user's own indentation that follows. Lines that don't
+/// begin with `\s*->` are left alone, so the first statement line and any
+/// in-line `->` (lambdas, etc.) survive.
+struct StripSQLContinuationArrowsTransform: TextTransform {
+    let id = "lines.strip_sql_arrows"
+    let displayName = "Strip SQL continuation arrows"
+
+    func isApplicable(to text: String) -> Bool {
+        guard let out = apply(to: text) else { return false }
+        return out != text
+    }
+
+    func apply(to text: String) -> String? {
+        text
+            .components(separatedBy: "\n")
+            .map(SQLArrowStrip.strip)
+            .joined(separator: "\n")
+    }
+}
+
+/// Strip a leading `\s*->\s?` prefix if present; otherwise return the line
+/// unchanged. Hand-rolled rather than regex-based to match the style of the
+/// sibling per-line helpers and avoid regex compile overhead on long pasted
+/// statements. The single optional trailing space is intentional — the
+/// Trino/mysql CLI emits exactly one space after `->`, and any further
+/// indentation belongs to the user's original payload.
+private enum SQLArrowStrip {
+    static func strip(_ line: String) -> String {
+        var i = line.startIndex
+        while i < line.endIndex, line[i].isWhitespace { i = line.index(after: i) }
+        guard line.distance(from: i, to: line.endIndex) >= 2 else { return line }
+        guard line[i] == "-", line[line.index(after: i)] == ">" else { return line }
+        var j = line.index(i, offsetBy: 2)
+        if j < line.endIndex, line[j] == " " { j = line.index(after: j) }
+        return String(line[j...])
+    }
+}
+
 /// Vertical borders stripped from line edges by `TrimBordersPerLineTransform`.
 /// Includes ASCII `|` plus the common box-drawing verticals (light / heavy /
 /// double / dashed / block edges). Horizontals like `─` are deliberately

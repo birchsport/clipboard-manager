@@ -29,6 +29,7 @@ enum TransformRegistry {
         TrimTrailingPerLineTransform(),
         TrimWhitespacePerLineTransform(),
         TrimBordersPerLineTransform(),
+        StripSQLContinuationArrowsTransform(),
         StripANSITransform(),
         StripHTMLTransform(),
         ExtractURLsTransform(),

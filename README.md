@@ -52,8 +52,9 @@ falls short (nonactivating panels, global hotkeys, focus capture).
   MD5, number-base conversions (dec / hex / bin), query string ↔ JSON,
   Base64 / URL en-decode, case conversions (UPPER / lower / Title / camel /
   snake / kebab), trim whitespace (whole-string, per-line trailing, per-line
-  both ends, or per-line borders for `│ … │` table dumps), strip ANSI / HTML,
-  extract URLs / emails. Fuzzy-search
+  both ends, or per-line borders for `│ … │` table dumps), strip ANSI / HTML /
+  SQL continuation arrows (Trino / mysql `    -> ` prompts), extract URLs /
+  emails. Fuzzy-search
   transforms by name, ⏎ applies and pastes.
 - ⌘S opens a **snippet picker** of user-authored canned text, managed in
   Settings → Snippets. Supports placeholders: `{clipboard}`, `{date[:FMT]}`,

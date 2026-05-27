@@ -157,7 +157,7 @@ struct HelpTab: View {
             bullet("Base64 encode / decode, URL encode / decode.")
             bullet("Case — UPPER / lower / Title / camel / snake / kebab.")
             bullet("Trim whitespace (whole-string, per-line trailing, per-line both ends, or per-line borders for `│ … │` table dumps).")
-            bullet("Strip ANSI escape codes / HTML tags.")
+            bullet("Strip ANSI escape codes / HTML tags / SQL continuation arrows (Trino / mysql `    -> ` prompts).")
             bullet("Extract all URLs or all email addresses from free text.")
         }
     }

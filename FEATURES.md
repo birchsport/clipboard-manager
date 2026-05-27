@@ -95,7 +95,7 @@ renders the payload in any UI surface, while ⏎ still pastes the real value.
 
 Replace the clipboard payload with a transformed version before pasting.
 Inapplicable transforms (e.g. "Pretty JSON" over non-JSON) are hidden
-upfront; fuzzy-filter by name. 28 built-in transforms across the
+upfront; fuzzy-filter by name. 29 built-in transforms across the
 categories below.
 
 - **JSON** — Pretty-print, minify.
@@ -121,7 +121,10 @@ categories below.
     each line's edges. For pasted k8s / Airflow / tmux log tables where
     every row is wrapped in `│ … │`. Interior `|` characters survive.
   Each variant only appears when it would actually change the payload.
-- **Strip** — ANSI escape codes, HTML tags.
+- **Strip** — ANSI escape codes, HTML tags, SQL continuation arrows
+  (the `    -> ` prefix Trino / mysql / Presto / Hive CLIs add to every
+  line after the first when you paste a multi-line statement). Lines
+  without a leading `->` and mid-line `->` (lambdas, etc.) are preserved.
 - **Extract** — all URLs, all email addresses.
 
 ## ⌘S — Snippet picker
