@@ -149,5 +149,25 @@
             type="application/octet-stream"
         />
     </item>
+    <item>
+        <title>Version 0.2.8</title>
+        <pubDate>Wed, 27 May 2026 13:54:23 +0000</pubDate>
+        <sparkle:version>10</sparkle:version>
+        <sparkle:shortVersionString>0.2.8</sparkle:shortVersionString>
+        <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+        <link>https://github.com/birchsport/clipboard-manager/releases/tag/v0.2.8</link>
+        <description><![CDATA[
+<ul>
+    <li>Add a &quot;Trim borders per line&quot; transform</li>
+</ul>
+            <p style="font-size:smaller;color:#888;">Full notes: <a href="https://github.com/birchsport/clipboard-manager/releases/tag/v0.2.8">v0.2.8 on GitHub</a>.</p>
+        ]]></description>
+        <enclosure
+            url="https://github.com/birchsport/clipboard-manager/releases/download/v0.2.8/Birchboard-0.2.8.dmg"
+            sparkle:edSignature="47pnbsMSNNWxgT/XzxtCB8PG6X+MHIO+89CqK4Q0W6o3/UsIIDbmiYz0ZMXpxijMdcDj3lYv0gsU8DgR7K6VCQ=="
+            length="5198087"
+            type="application/octet-stream"
+        />
+    </item>
     </channel>
 </rss>
