@@ -95,7 +95,7 @@ renders the payload in any UI surface, while ⏎ still pastes the real value.
 
 Replace the clipboard payload with a transformed version before pasting.
 Inapplicable transforms (e.g. "Pretty JSON" over non-JSON) are hidden
-upfront; fuzzy-filter by name. 27 built-in transforms across the
+upfront; fuzzy-filter by name. 28 built-in transforms across the
 categories below.
 
 - **JSON** — Pretty-print, minify.
@@ -111,11 +111,15 @@ categories below.
   unreserved set).
 - **Case** — UPPERCASE, lowercase, Title Case, camelCase, snake_case,
   kebab-case.
-- **Trim whitespace** — three variants:
+- **Trim whitespace** — four variants:
   - Whole-string leading + trailing.
   - Per-line trailing only (preserves indentation).
   - Per-line leading + trailing (flattens indentation and cleans trailing
     spaces).
+  - Per-line borders — same as the previous variant, but also strips the
+    ASCII pipe `|` and common box-drawing verticals (`│ ┃ ║ ╎` …) from
+    each line's edges. For pasted k8s / Airflow / tmux log tables where
+    every row is wrapped in `│ … │`. Interior `|` characters survive.
   Each variant only appears when it would actually change the payload.
 - **Strip** — ANSI escape codes, HTML tags.
 - **Extract** — all URLs, all email addresses.

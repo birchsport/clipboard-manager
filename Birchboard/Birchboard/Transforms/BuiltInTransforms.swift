@@ -341,6 +341,54 @@ struct TrimWhitespacePerLineTransform: TextTransform {
     }
 }
 
+/// Like `TrimWhitespacePerLineTransform`, but also strips common vertical
+/// box-drawing characters and the ASCII pipe `|`. Targets pasted table
+/// output (k8s logs, Airflow, tmux panes, ASCII tables) where each row
+/// is wrapped in `│ … │` borders. Only edges are touched — interior `|`
+/// characters survive.
+struct TrimBordersPerLineTransform: TextTransform {
+    let id = "lines.trim_borders"
+    let displayName = "Trim borders per line"
+
+    func isApplicable(to text: String) -> Bool {
+        guard let out = apply(to: text) else { return false }
+        return out != text
+    }
+
+    func apply(to text: String) -> String? {
+        text
+            .components(separatedBy: "\n")
+            .map(LineBorderTrim.trim)
+            .joined(separator: "\n")
+    }
+}
+
+/// Vertical borders stripped from line edges by `TrimBordersPerLineTransform`.
+/// Includes ASCII `|` plus the common box-drawing verticals (light / heavy /
+/// double / dashed / block edges). Horizontals like `─` are deliberately
+/// excluded — those usually form whole separator rows, not line wrappers.
+private enum LineBorderTrim {
+    static let borders: Set<Character> = [
+        "|",
+        "\u{2502}", "\u{2503}", "\u{2551}",
+        "\u{2506}", "\u{2507}", "\u{250A}", "\u{250B}",
+        "\u{254E}", "\u{254F}",
+        "\u{2575}", "\u{2577}", "\u{2579}", "\u{257B}",
+        "\u{258F}", "\u{2595}",
+    ]
+
+    static func isEdge(_ c: Character) -> Bool {
+        c.isWhitespace || borders.contains(c)
+    }
+
+    static func trim(_ line: String) -> String {
+        var s = line
+        while let last = s.last, isEdge(last) { s.removeLast() }
+        while let first = s.first, isEdge(first) { s.removeFirst() }
+        return s
+    }
+}
+
 /// Shared per-line trim helpers. Uses `Character.isWhitespace` (Unicode-
 /// aware, includes \r) so Windows-style CRLF-split lines get their
 /// trailing \r stripped too.

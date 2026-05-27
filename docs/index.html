@@ -6,7 +6,7 @@
   <title>Birchboard — a macOS clipboard manager for people who code</title>
   <meta
     name="description"
-    content="Birchboard is a native macOS clipboard history manager. Fuzzy search, 27 transforms (JSON / YAML / JWT / hashes / timestamps / …), user-authored snippets with placeholders, type-aware actions, syntax-highlighted previews, and a tree view for structured data. Free and open source under MIT."
+    content="Birchboard is a native macOS clipboard history manager. Fuzzy search, 28 transforms (JSON / YAML / JWT / hashes / timestamps / …), user-authored snippets with placeholders, type-aware actions, syntax-highlighted previews, and a tree view for structured data. Free and open source under MIT."
   />
   <meta property="og:title" content="Birchboard" />
   <meta
@@ -57,7 +57,7 @@
     <ul class="highlights">
       <li><strong>⌘⇧V</strong> anywhere opens a floating panel over any app, including fullscreen.</li>
       <li><strong>fzf-style fuzzy search</strong> — word-boundary, consecutive-match, camelCase bonuses.</li>
-      <li><strong>27 transforms</strong> reachable with <strong>⌘T</strong>.</li>
+      <li><strong>28 transforms</strong> reachable with <strong>⌘T</strong>.</li>
       <li><strong>User-authored snippets</strong> with <code>{clipboard}</code> / <code>{date}</code> / <code>{uuid}</code> placeholders.</li>
       <li><strong>Type-aware actions</strong> with <strong>⌘K</strong> — open URL, reveal file, compose mail, call phone, paste hex as rgb().</li>
       <li><strong>Syntax-highlighted Quick Look</strong> for 17 languages, plus a collapsible <strong>tree view</strong> for JSON / YAML / XML.</li>
@@ -131,7 +131,7 @@
           <li><strong>Query string ↔ JSON</strong>.</li>
           <li><strong>Encoding</strong> &mdash; Base64, URL.</li>
           <li><strong>Case</strong> &mdash; UPPER / lower / Title / camel / snake / kebab.</li>
-          <li><strong>Trim</strong> &mdash; whole-string, per-line trailing, or per-line both ends.</li>
+          <li><strong>Trim</strong> &mdash; whole-string, per-line trailing, per-line both ends, or per-line borders (strips <code>|</code> / <code>│</code> / <code>┃</code> / <code>║</code> from each line's edges for <code>│&nbsp;…&nbsp;│</code> table dumps).</li>
           <li><strong>Strip</strong> &mdash; ANSI escape codes, HTML tags.</li>
           <li><strong>Extract</strong> &mdash; all URLs, all email addresses.</li>
         </ul>
