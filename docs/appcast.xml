@@ -189,5 +189,26 @@
             type="application/octet-stream"
         />
     </item>
+    <item>
+        <title>Version 0.2.10</title>
+        <pubDate>Thu, 28 May 2026 15:04:38 +0000</pubDate>
+        <sparkle:version>12</sparkle:version>
+        <sparkle:shortVersionString>0.2.10</sparkle:shortVersionString>
+        <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+        <link>https://github.com/birchsport/clipboard-manager/releases/tag/v0.2.10</link>
+        <description><![CDATA[
+<p>Reorder long-lived pins so they don't sink under newer ones.</p>
+<ul>
+    <li><strong>Reorder pinned entries</strong> &mdash; with a pinned row selected, <kbd>&#x2325;&#x2191;</kbd> / <kbd>&#x2325;&#x2193;</kbd> swaps it with the adjacent visible pinned neighbour. Useful when a freshly-pinned row pushes an older pin you actually use further down the list.</li>
+</ul>
+            <p style="font-size:smaller;color:#888;">Full notes: <a href="https://github.com/birchsport/clipboard-manager/releases/tag/v0.2.10">v0.2.10 on GitHub</a>.</p>
+        ]]></description>
+        <enclosure
+            url="https://github.com/birchsport/clipboard-manager/releases/download/v0.2.10/Birchboard-0.2.10.dmg"
+            sparkle:edSignature="jMFUqwRtrlgG+VGSQVN8SrMBlJwNpc+jQ+7pXJHpQFX1S0Bjw93hTQeOnqRhr4G+izEP0ntmQhirGMwQd6CoDQ=="
+            length="5204042"
+            type="application/octet-stream"
+        />
+    </item>
     </channel>
 </rss>
