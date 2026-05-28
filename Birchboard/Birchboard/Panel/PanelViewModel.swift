@@ -75,6 +75,13 @@ final class PanelViewModel: ObservableObject {
     private var allEntries: [ClipEntry] = []
     private var cancellables = Set<AnyCancellable>()
 
+    /// When non-nil, the next `applyFilter` re-selects the entry with this id
+    /// (if it's still present in the visible list) instead of using its usual
+    /// index-based fallback. Set by `moveSelectedPin` so the keyboard cursor
+    /// follows a reordered pin to its new position across the async refresh
+    /// that the repository's change publisher triggers. Consumed on use.
+    private var pendingReselectID: Int64?
+
     init(services: Services, actions: PanelActions) {
         self.services = services
         self.actions = actions
@@ -212,7 +219,7 @@ final class PanelViewModel: ObservableObject {
         let snapshot = allEntries
         if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             self.entries = snapshot
-            self.selectedIndex = min(selectedIndex, max(0, snapshot.count - 1))
+            self.selectedIndex = pickSelectedIndex(in: snapshot, fallback: selectedIndex)
             return
         }
 
@@ -221,9 +228,21 @@ final class PanelViewModel: ObservableObject {
             let filtered = FuzzyMatcher.filter(snapshot, query: query)
             await MainActor.run {
                 self.entries = filtered
-                self.selectedIndex = filtered.isEmpty ? 0 : 0
+                self.selectedIndex = self.pickSelectedIndex(in: filtered, fallback: 0)
             }
         }
+    }
+
+    /// Consume `pendingReselectID` if it points at a row in `list`; otherwise
+    /// fall back to the caller's preferred index (clamped to the list).
+    private func pickSelectedIndex(in list: [ClipEntry], fallback: Int) -> Int {
+        if let id = pendingReselectID,
+           let idx = list.firstIndex(where: { $0.id == id }) {
+            pendingReselectID = nil
+            return idx
+        }
+        pendingReselectID = nil
+        return min(fallback, max(0, list.count - 1))
     }
 
     // MARK: - Transform mode
@@ -588,6 +607,7 @@ final class PanelViewModel: ObservableObject {
         let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
         let cmd = flags.contains(.command)
         let shift = flags.contains(.shift)
+        let option = flags.contains(.option)
 
         // ⌘1–⌘9: paste the Nth visible entry. ⇧⌘N pastes plain text. ⌘1-9
         // is deliberately a single-row escape hatch — it ignores any active
@@ -603,20 +623,32 @@ final class PanelViewModel: ObservableObject {
 
         // ⇧Space toggles the current row in the multi-paste batch. Mouseless
         // equivalent of ⌘-click; ⇧↑/⇧↓ extends contiguously like Finder.
-        if shift, !cmd, event.keyCode == 49 {
+        if shift, !cmd, !option, event.keyCode == 49 {
             if let entry = selectedEntry {
                 toggleBatch(entryID: entry.id)
             }
             return true
         }
-        if shift, !cmd, event.keyCode == 125 { // ⇧Down
+        if shift, !cmd, !option, event.keyCode == 125 { // ⇧Down
             extendBatch(to: selectedIndex + 1)
             moveSelection(+1)
             return true
         }
-        if shift, !cmd, event.keyCode == 126 { // ⇧Up
+        if shift, !cmd, !option, event.keyCode == 126 { // ⇧Up
             extendBatch(to: selectedIndex - 1)
             moveSelection(-1)
+            return true
+        }
+
+        // ⌥↑ / ⌥↓ reorder pinned entries by swapping the selected pin with
+        // its adjacent neighbour. Only meaningful on a pinned row; beeps
+        // otherwise.
+        if option, !cmd, !shift, event.keyCode == 126 { // ⌥Up
+            moveSelectedPin(by: -1)
+            return true
+        }
+        if option, !cmd, !shift, event.keyCode == 125 { // ⌥Down
+            moveSelectedPin(by: +1)
             return true
         }
 
@@ -783,6 +815,28 @@ final class PanelViewModel: ObservableObject {
     private func moveSelection(_ delta: Int) {
         guard !entries.isEmpty else { return }
         selectedIndex = max(0, min(entries.count - 1, selectedIndex + delta))
+    }
+
+    /// Reorder the selected pinned row by swapping its `pinned_at` with the
+    /// nearest *visible* pinned neighbour in the requested direction. Walking
+    /// the visible list (not the underlying ordering) means the move is
+    /// predictable even with a search filter active. Beeps if the selection
+    /// isn't pinned or there's no pinned neighbour to swap with.
+    private func moveSelectedPin(by delta: Int) {
+        guard let current = selectedEntry, current.isPinned else {
+            NSSound.beep(); return
+        }
+        var target = selectedIndex + delta
+        while entries.indices.contains(target), !entries[target].isPinned {
+            target += delta
+        }
+        guard entries.indices.contains(target), entries[target].isPinned else {
+            NSSound.beep(); return
+        }
+        // Re-select the moved entry once `refresh()` fires from the repository's
+        // change publisher and rebuilds `entries`.
+        pendingReselectID = current.id
+        actions.swapPinOrder(current.id, entries[target].id)
     }
 
     private func moveTransformSelection(_ delta: Int) {

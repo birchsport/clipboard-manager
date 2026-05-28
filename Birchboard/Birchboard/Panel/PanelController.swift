@@ -170,6 +170,10 @@ final class PanelController: NSObject, NSWindowDelegate {
         try? services.repository.togglePin(id: entry.id)
     }
 
+    func swapPinOrder(_ a: Int64, _ b: Int64) {
+        try? services.repository.swapPinOrder(idA: a, idB: b)
+    }
+
     func toggleObfuscation(_ entry: ClipEntry) {
         try? services.repository.toggleObfuscation(id: entry.id)
     }
@@ -257,6 +261,7 @@ final class PanelActions: ObservableObject {
 
     func dismiss() { controller?.hide() }
     func togglePin(_ entry: ClipEntry) { controller?.togglePin(entry) }
+    func swapPinOrder(_ a: Int64, _ b: Int64) { controller?.swapPinOrder(a, b) }
     func toggleObfuscation(_ entry: ClipEntry) { controller?.toggleObfuscation(entry) }
     func setObfuscationNickname(_ entry: ClipEntry, _ nickname: String?) {
         controller?.setObfuscationNickname(entry, nickname)

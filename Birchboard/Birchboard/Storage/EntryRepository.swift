@@ -98,6 +98,24 @@ final class EntryRepository: @unchecked Sendable {
         subject.send()
     }
 
+    /// Swaps the `pinned_at` timestamps between two pinned rows so the user
+    /// can reorder pins (⌥↑ / ⌥↓ in the panel). No-op if either row is
+    /// unpinned. Both updates run inside a single write so the ordering can
+    /// never be observed mid-swap. `pinned_at` is only used as the sort key
+    /// for the pinned section — retention sweeps and the archive treat it as
+    /// opaque, so swapping the values is safe.
+    func swapPinOrder(idA: Int64, idB: Int64) throws {
+        guard idA != idB else { return }
+        try database.pool.write { db in
+            let a: Date? = try Date.fetchOne(db, sql: "SELECT pinned_at FROM entries WHERE id = ?", arguments: [idA])
+            let b: Date? = try Date.fetchOne(db, sql: "SELECT pinned_at FROM entries WHERE id = ?", arguments: [idB])
+            guard let a, let b else { return }
+            try db.execute(sql: "UPDATE entries SET pinned_at = ? WHERE id = ?", arguments: [b, idA])
+            try db.execute(sql: "UPDATE entries SET pinned_at = ? WHERE id = ?", arguments: [a, idB])
+        }
+        subject.send()
+    }
+
     /// Toggles obfuscation on `id`. Toggling off clears the nickname so
     /// re-obfuscating later starts fresh.
     func toggleObfuscation(id: Int64) throws {

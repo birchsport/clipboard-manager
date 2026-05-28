@@ -14,6 +14,9 @@ falls short (nonactivating panels, global hotkeys, focus capture).
 - fzf-style fuzzy search with word-boundary, consecutive-match, and camelCase bonuses.
 - ⏎ pastes with original formatting; ⇧⏎ pastes as plain text; ⌘P pins;
   ⌘⌫ deletes; Esc dismisses.
+- **Reorder pinned entries** — with a pinned row selected, ⌥↑ / ⌥↓ swaps it
+  with the adjacent pinned neighbour in the visible list. Lets a long-lived
+  pin keep its spot at the top instead of slowly sinking under newer pins.
 - **Multi-paste** — ⇧Space (or ⌘-click) gathers rows into a batch, ⇧↑/⇧↓
   extends contiguously, ⏎ pastes them joined by a configurable delimiter
   (default newline; configurable via Settings → General → Multi-select with

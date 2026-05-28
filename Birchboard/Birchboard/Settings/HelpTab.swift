@@ -67,6 +67,7 @@ struct HelpTab: View {
         ("⌘K",         "Action picker"),
         ("⌘Y",         "Quick Look preview overlay"),
         ("⌘P",         "Pin / unpin selected"),
+        ("⌥↑ / ⌥↓",    "Reorder pinned rows (move selected pin up / down)"),
         ("⌘O",         "Obfuscate / un-obfuscate selected (hides content for screen-share)"),
         ("⌘R",         "Rename obfuscated entry's nickname"),
         ("⌘⌫",         "Delete selected"),
@@ -92,6 +93,7 @@ struct HelpTab: View {
             bullet("⌘1 – ⌘9 quick-paste the Nth visible row; the hint chip is shown inline on the first nine rows.")
             bullet("Rows detected as code (17 languages) show a language chip next to the source app.")
             bullet("⌘P to pin, ⌘⌫ to delete, Esc to dismiss.")
+            bullet("⌥↑ / ⌥↓ reorder pinned rows — swap the selected pin with its adjacent visible neighbour so a long-lived pin can keep its spot.")
         }
     }
 

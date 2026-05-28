@@ -46,6 +46,11 @@ System requirements: macOS 14 (Sonoma) or newer. Apple Silicon or Intel.
   CSS. Detection order resolves shared-keyword conflicts (Java is
   checked before Python so `class Foo { … }` doesn't falsely match).
 - **Pin / unpin** entries so they stay on top (⌘P).
+- **Reorder pinned entries** — with a pinned row selected, ⌥↑ / ⌥↓ swaps it
+  with the adjacent pinned neighbour in the visible list, so a long-lived
+  pin can keep its spot instead of sinking under newer ones. Beeps on an
+  unpinned row, at the top/bottom of the pinned region, or when no other
+  pinned row is visible.
 - **Delete** with ⌘⌫.
 
 ## ⌘O — Obfuscate (screen-share safety)
@@ -224,6 +229,7 @@ While the panel is open:
 | ⌘K            | Action picker                               |
 | ⌘Y            | Quick Look preview overlay                  |
 | ⌘P            | Pin / unpin selected                        |
+| ⌥↑ / ⌥↓       | Reorder pinned rows (move selected pin up / down) |
 | ⌘O            | Obfuscate / un-obfuscate selected (hide content for screen-share) |
 | ⌘R            | Rename obfuscated entry's nickname          |
 | ⌘⌫            | Delete selected                             |
