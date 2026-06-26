@@ -6,6 +6,7 @@ import AppKit
 /// move the selection, so the overlay live-updates as the user navigates.
 struct QuickLookView: View {
     let entry: ClipEntry?
+    @Environment(\.panelFontScale) private var fontScale
 
     var body: some View {
         ZStack {
@@ -30,14 +31,14 @@ struct QuickLookView: View {
         HStack(spacing: 8) {
             Image(systemName: "eye")
                 .foregroundStyle(.secondary)
-                .font(.system(size: 11))
+                .scaledFont(11)
             Text(title)
-                .font(.system(size: 12, weight: .semibold))
+                .scaledFont(12, weight: .semibold)
                 .lineLimit(1)
             Spacer(minLength: 0)
             if let size = sizeString {
                 Text(size)
-                    .font(.system(size: 10))
+                    .scaledFont(10)
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
             }
@@ -49,7 +50,7 @@ struct QuickLookView: View {
     private var footer: some View {
         HStack(spacing: 10) {
             Text("⌘Y or Esc to close")
-                .font(.system(size: 10))
+                .scaledFont(10)
                 .foregroundStyle(.tertiary)
             Spacer()
         }
@@ -114,18 +115,18 @@ struct QuickLookView: View {
             Spacer()
             if let nick = entry.obfuscationNickname, !nick.isEmpty {
                 Text(nick)
-                    .font(.system(size: 18, weight: .semibold))
+                    .scaledFont(18, weight: .semibold)
             } else {
                 Text("(no nickname)")
                     .italic()
                     .foregroundStyle(.tertiary)
-                    .font(.system(size: 14))
+                    .scaledFont(14)
             }
             Text("••••••••")
-                .font(.system(size: 28, design: .monospaced))
+                .scaledFont(28, design: .monospaced)
                 .foregroundStyle(.secondary)
             Text("Hidden — ⌘O to reveal, ⌘R to rename")
-                .font(.system(size: 11))
+                .scaledFont(11)
                 .foregroundStyle(.tertiary)
             Spacer()
         }
@@ -142,7 +143,7 @@ struct QuickLookView: View {
             TreeView(root: tree)
         } else {
             ScrollView {
-                CodeHighlighter.styledText(s, entryID: entryID)
+                CodeHighlighter.styledText(s, entryID: entryID, fontSize: 13 * fontScale)
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(14)
@@ -185,7 +186,7 @@ struct QuickLookView: View {
                             .resizable()
                             .frame(width: 16, height: 16)
                         Text(url.path)
-                            .font(.system(.body, design: .monospaced))
+                            .scaledFont(13, design: .monospaced)
                             .textSelection(.enabled)
                     }
                 }

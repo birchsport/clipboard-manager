@@ -37,14 +37,14 @@ struct SnippetPickerView: View {
         HStack(spacing: 6) {
             Image(systemName: "text.badge.plus")
                 .foregroundStyle(.secondary)
-                .font(.system(size: 10))
+                .scaledFont(10)
             Text("Snippet")
-                .font(.system(size: 10, weight: .semibold))
+                .scaledFont(10, weight: .semibold)
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
             Spacer(minLength: 0)
             Text("⏎ paste · Esc cancel")
-                .font(.system(size: 10))
+                .scaledFont(10)
                 .foregroundStyle(.tertiary)
         }
         .padding(.horizontal, 12)
@@ -56,16 +56,16 @@ struct SnippetPickerView: View {
         VStack(spacing: 6) {
             Spacer()
             Image(systemName: "text.badge.plus")
-                .font(.system(size: 22))
+                .scaledFont(22)
                 .foregroundStyle(.secondary)
             Text(noSnippetsAtAll ? "No snippets yet" : "No matches")
                 .foregroundStyle(.secondary)
-                .font(.system(size: 12))
+                .scaledFont(12)
             Text(noSnippetsAtAll
                  ? "Add snippets in Settings → Snippets."
                  : "Try a different search, or press Esc.")
                 .foregroundStyle(.tertiary)
-                .font(.system(size: 10))
+                .scaledFont(10)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 12)
             Spacer()
@@ -84,10 +84,10 @@ struct SnippetPickerView: View {
         let selected = index == viewModel.snippetSelectedIndex
         VStack(alignment: .leading, spacing: 2) {
             Text(snippet.displayName)
-                .font(.system(size: 12, weight: .medium))
+                .scaledFont(12, weight: .medium)
                 .lineLimit(1)
             Text(bodyPreview(snippet.body))
-                .font(.system(size: 10))
+                .scaledFont(10)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
         }

@@ -169,6 +169,9 @@ contain a URL/email/etc.).
 - **Retention** — cap history by count and age (defaults: 1000 entries,
   90 days). Pinned entries never expire.
 - **Panel opacity** — slider, 30–100%.
+- **Panel font size** — slider, 100–200%. Proportionally enlarges all text in
+  the clipboard panel (list rows, previews, Quick Look, pickers). An
+  accessibility aid for low vision.
 - **Restore previous clipboard after paste** — optional; using a history
   entry doesn't disturb your current clipboard.
 - **Launch at login** — via `SMAppService`.

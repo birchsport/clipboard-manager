@@ -82,6 +82,19 @@ private struct GeneralTab: View {
                     }
                     Slider(value: $preferences.panelOpacity, in: 0.3...1.0)
                 }
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("Panel font size")
+                        Spacer()
+                        Text("\(Int(preferences.fontScale * 100))%")
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                    }
+                    Slider(value: $preferences.fontScale, in: 1.0...2.0)
+                    Text("Enlarges all text in the clipboard panel. Helpful for low vision.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
             Section("Easter Eggs") {
                 Toggle("Predictive Paste", isOn: $preferences.predictivePasteEnabled)

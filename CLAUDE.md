@@ -65,6 +65,10 @@ Each non-browse mode has its own parallel `@Published` state (`transformQuery / 
 
 The panel is `.nonactivatingPanel` so its parent app never becomes frontmost — this is how we keep `previousApp` valid for the paste flow. `makeKey()` is called (for typing into the search field) but `NSApp.activate(...)` is deliberately never called. A published `focusRequestTick` counter on the view model is bumped whenever a field should re-focus; `PanelContentView.onChange(of: focusRequestTick)` re-applies `@FocusState` via a `DispatchQueue.main.async` (same runloop writes get dropped).
 
+### Panel font scaling (accessibility)
+
+`Preferences.fontScale` (key `fontScale`, default `1.0`, range 1.0–2.0 via the Settings → General → Appearance slider) proportionally enlarges **all** text in the panel for low-vision users. The mechanism lives in `Panel/PanelFontScale.swift`: a `panelFontScale` `EnvironmentValues` key (default `1.0`) plus a `.scaledFont(_:weight:design:)` `View` modifier that reads the env value and applies `.font(.system(size: size * scale, …))`. Every panel text element calls `.scaledFont(N)` instead of `.font(.system(size: N))`, so the base sizes stay readable at call sites and child views need no plumbing — they inherit the environment. `PanelContentView` holds an `@ObservedObject var preferences` and injects the scale once at the **outermost** modifier (so the QuickLook overlay inherits it too); because `Preferences` is the shared `@Published` instance, moving the slider re-renders the open panel live with no Combine wiring (unlike `panelOpacity`, which is controller-side). The one non-SwiftUI path is `CodeHighlighter` — Splash bakes the font size into its `AttributedString`, so `styledText`/`highlight`/`highlightSwift` thread a `fontSize` param and `QuickLookView` passes `13 * fontScale` (read from `@Environment(\.panelFontScale)`); the Swift highlighter is rebuilt per size rather than cached. Fixed-size chrome (18×18 icon frames, 16pt tree indents) does **not** scale — acceptable minor cosmetic, and rows reflow because none have fixed heights.
+
 ### Paste flow
 
 `PanelController.paste(entry, asPlainText:)` order matters:

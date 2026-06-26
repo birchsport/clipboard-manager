@@ -40,14 +40,14 @@ struct TransformPickerView: View {
         HStack(spacing: 6) {
             Image(systemName: "wand.and.stars")
                 .foregroundStyle(.secondary)
-                .font(.system(size: 10))
+                .scaledFont(10)
             Text("Transform")
-                .font(.system(size: 10, weight: .semibold))
+                .scaledFont(10, weight: .semibold)
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
             Spacer(minLength: 0)
             Text("⏎ apply · Esc cancel")
-                .font(.system(size: 10))
+                .scaledFont(10)
                 .foregroundStyle(.tertiary)
         }
         .padding(.horizontal, 12)
@@ -60,10 +60,10 @@ struct TransformPickerView: View {
             Spacer()
             Text("No transforms match")
                 .foregroundStyle(.secondary)
-                .font(.system(size: 12))
+                .scaledFont(12)
             Text("Try a different search, or press Esc to cancel.")
                 .foregroundStyle(.tertiary)
-                .font(.system(size: 10))
+                .scaledFont(10)
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -73,9 +73,9 @@ struct TransformPickerView: View {
         HStack(spacing: 6) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundStyle(.orange)
-                .font(.system(size: 10))
+                .scaledFont(10)
             Text(message)
-                .font(.system(size: 11))
+                .scaledFont(11)
                 .foregroundStyle(.primary)
         }
         .padding(.horizontal, 12)
@@ -92,7 +92,7 @@ struct TransformPickerView: View {
                 .foregroundStyle(.secondary)
                 .frame(width: 16)
             Text(transform.displayName)
-                .font(.system(size: 12))
+                .scaledFont(12)
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 10)

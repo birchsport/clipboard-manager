@@ -195,7 +195,8 @@ final class PanelController: NSObject, NSWindowDelegate {
         panel.delegate = self
 
         let view = PanelContentView(viewModel: PanelViewModel(services: services,
-                                                              actions: actions))
+                                                              actions: actions),
+                                    preferences: services.preferences)
         let host = NSHostingView(rootView: view)
         host.translatesAutoresizingMaskIntoConstraints = true
         panel.contentView = host

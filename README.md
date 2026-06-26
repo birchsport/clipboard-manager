@@ -82,8 +82,9 @@ falls short (nonactivating panels, global hotkeys, focus capture).
   back. Dedup by content hash means re-importing is a no-op.
 - Optional "restore previous clipboard after paste" so history isn't disturbed by
   its own use.
-- **Adjustable panel opacity** (slider, 30–100%) and **launch at login** in
-  Settings → General.
+- **Adjustable panel opacity** (slider, 30–100%), **adjustable font size**
+  (slider, 100–200% — an accessibility aid for low vision), and **launch at
+  login** in Settings → General.
 - **Auto-updates via [Sparkle](https://sparkle-project.org)** — background
   check every 24 hours, manual "Check for Updates…" in the menu-bar, feed
   hosted on GitHub Pages. Updates are EdDSA-signed and notarized.

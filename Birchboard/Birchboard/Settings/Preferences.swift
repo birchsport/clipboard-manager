@@ -12,6 +12,7 @@ final class Preferences: ObservableObject {
         static let restoreClipboardAfterPaste = "restoreClipboardAfterPaste"
         static let launchAtLogin = "launchAtLogin"
         static let panelOpacity = "panelOpacity"
+        static let fontScale = "fontScale"
         static let ignoredAppBundleIDs = "ignoredAppBundleIDs"
         static let multiSelectDelimiter = "multiSelectDelimiter"
         static let predictivePasteEnabled = "predictivePasteEnabled"
@@ -51,6 +52,12 @@ final class Preferences: ObservableObject {
         didSet { defaults.set(panelOpacity, forKey: Keys.panelOpacity) }
     }
 
+    /// Multiplier applied to every font in the clipboard panel. 1.0 = default
+    /// sizes, up to 2.0 = twice as large. An accessibility aid for low vision.
+    @Published var fontScale: Double {
+        didSet { defaults.set(fontScale, forKey: Keys.fontScale) }
+    }
+
     /// Bundle identifiers of apps whose clipboard activity we should not
     /// record. `ClipboardWatcher` consults this on every poll.
     @Published var ignoredAppBundleIDs: [String] {
@@ -84,6 +91,7 @@ final class Preferences: ObservableObject {
         self.restoreClipboardAfterPaste = defaults.bool(forKey: Keys.restoreClipboardAfterPaste)
         self.launchAtLogin = defaults.bool(forKey: Keys.launchAtLogin)
         self.panelOpacity = (defaults.object(forKey: Keys.panelOpacity) as? Double) ?? 0.85
+        self.fontScale = (defaults.object(forKey: Keys.fontScale) as? Double) ?? 1.0
         // On first launch, seed with the sensible defaults. Subsequent launches
         // honour whatever the user has set (including empty list).
         self.ignoredAppBundleIDs = (defaults.object(forKey: Keys.ignoredAppBundleIDs) as? [String])

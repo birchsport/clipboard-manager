@@ -25,9 +25,11 @@ enum CodeHighlighter {
         static let literal = SwiftUI.Color(red: 0.45, green: 0.35, blue: 0.70)   // purple (true/false/null)
     }
 
-    static func highlight(_ text: String, as language: DetectedLanguage) -> AttributedString {
+    static func highlight(_ text: String,
+                          as language: DetectedLanguage,
+                          fontSize: CGFloat = 13) -> AttributedString {
         if language == .swift {
-            return highlightSwift(text)
+            return highlightSwift(text, fontSize: fontSize)
         }
         return highlightGeneric(text, rules: rules(for: language))
     }
@@ -38,7 +40,7 @@ enum CodeHighlighter {
     /// content.
     static func styledText(_ text: String, entryID: Int64, fontSize: CGFloat = 13) -> Text {
         if let language = LanguageDetector.detect(text, cacheKey: "preview-\(entryID)") {
-            return Text(highlight(text, as: language))
+            return Text(highlight(text, as: language, fontSize: fontSize))
                 .font(.system(size: fontSize, design: .monospaced))
         }
         return Text(text)
@@ -47,11 +49,9 @@ enum CodeHighlighter {
 
     // MARK: - Swift via Splash
 
-    private static let swiftHighlighter = SyntaxHighlighter(format: AttributedStringOutputFormat(theme: splashTheme))
-
-    private static var splashTheme: Theme {
+    private static func splashTheme(fontSize: CGFloat) -> Theme {
         Theme(
-            font: Splash.Font(size: 13),
+            font: Splash.Font(size: Double(fontSize)),
             plainTextColor: .labelColor,
             tokenColors: [
                 .keyword:      nsColor(Palette.keyword),
@@ -68,8 +68,14 @@ enum CodeHighlighter {
         )
     }
 
-    private static func highlightSwift(_ text: String) -> AttributedString {
-        let ns = swiftHighlighter.highlight(text)
+    /// Splash bakes the font (size included) into the produced attributes, so
+    /// the highlighter must be built per requested size. Construction is cheap
+    /// (it just holds the theme); the lexing cost is in `highlight`. Previews
+    /// render one entry at a time, so building on demand is fine.
+    private static func highlightSwift(_ text: String, fontSize: CGFloat) -> AttributedString {
+        let highlighter = SyntaxHighlighter(
+            format: AttributedStringOutputFormat(theme: splashTheme(fontSize: fontSize)))
+        let ns = highlighter.highlight(text)
         return AttributedString(ns)
     }
 

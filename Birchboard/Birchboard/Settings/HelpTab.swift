@@ -16,6 +16,7 @@ struct HelpTab: View {
                 browsing
                 multiSelect
                 previews
+                appearance
                 obfuscation
                 transforms
                 snippets
@@ -121,6 +122,14 @@ struct HelpTab: View {
             bullet("The right-side pane renders text with syntax highlighting when a language is detected.")
             bullet("⌘Y opens a full-panel Quick Look overlay for the selected entry.")
             bullet("For JSON, YAML, or XML entries, Quick Look shows a collapsible tree instead of flat text. Click any `{ … keys }` / `[ … items ]` / `<tag>` row to expand or collapse; each subtree toggles independently.")
+        }
+    }
+
+    private var appearance: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            sectionHeader("Appearance")
+            bullet("Panel opacity and panel font size are adjustable in Settings → General → Appearance.")
+            bullet("Panel font size (100–200%) proportionally enlarges all text in the panel — list rows, previews, Quick Look, and pickers. An accessibility aid for low vision.")
         }
     }
 

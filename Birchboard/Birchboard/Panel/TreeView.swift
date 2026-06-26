@@ -57,19 +57,19 @@ private struct NodeView: View {
         case .string(let s):
             return Text("\"\(s)\"")
                 .foregroundStyle(CodeHighlighter.Palette.string)
-                .font(.system(size: 12, design: .monospaced))
+                .scaledFont(12, design: .monospaced)
         case .number(let n):
             return Text(n)
                 .foregroundStyle(CodeHighlighter.Palette.number)
-                .font(.system(size: 12, design: .monospaced))
+                .scaledFont(12, design: .monospaced)
         case .bool(let b):
             return Text(b ? "true" : "false")
                 .foregroundStyle(CodeHighlighter.Palette.literal)
-                .font(.system(size: 12, design: .monospaced))
+                .scaledFont(12, design: .monospaced)
         case .null:
             return Text("null")
                 .foregroundStyle(CodeHighlighter.Palette.literal)
-                .font(.system(size: 12, design: .monospaced))
+                .scaledFont(12, design: .monospaced)
         }
     }
 
@@ -84,7 +84,7 @@ private struct NodeView: View {
                 withAnimation(.easeOut(duration: 0.08)) { isExpanded.toggle() }
             } label: {
                 Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
-                    .font(.system(size: 10, weight: .semibold))
+                    .scaledFont(10, weight: .semibold)
                     .foregroundStyle(.secondary)
                     .frame(width: 16, height: 12)
             }
@@ -97,7 +97,7 @@ private struct NodeView: View {
             }
 
             Text(summary(for: kind, count: children.count))
-                .font(.system(size: 11, design: .monospaced))
+                .scaledFont(11, design: .monospaced)
                 .foregroundStyle(.tertiary)
             Spacer(minLength: 0)
         }
@@ -129,24 +129,24 @@ private struct NodeView: View {
     private func labelText(_ label: String) -> some View {
         if label.hasPrefix("[") && label.hasSuffix("]") {
             Text(label)
-                .font(.system(size: 12, design: .monospaced))
+                .scaledFont(12, design: .monospaced)
                 .foregroundStyle(.tertiary)
         } else if label.hasPrefix("<") && label.hasSuffix(">") {
             Text(label)
-                .font(.system(size: 12, design: .monospaced))
+                .scaledFont(12, design: .monospaced)
                 .foregroundStyle(CodeHighlighter.Palette.type)
         } else if label.hasPrefix("@") {
             Text(label)
-                .font(.system(size: 12, design: .monospaced))
+                .scaledFont(12, design: .monospaced)
                 .foregroundStyle(CodeHighlighter.Palette.key)
         } else if label == "#text" {
             Text(label)
-                .font(.system(size: 12, design: .monospaced))
+                .scaledFont(12, design: .monospaced)
                 .foregroundStyle(.tertiary)
                 .italic()
         } else {
             Text("\"\(label)\"")
-                .font(.system(size: 12, design: .monospaced))
+                .scaledFont(12, design: .monospaced)
                 .foregroundStyle(CodeHighlighter.Palette.key)
         }
     }

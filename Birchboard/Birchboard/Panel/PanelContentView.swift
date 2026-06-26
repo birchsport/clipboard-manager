@@ -9,6 +9,9 @@ import Combine
 /// which calls `viewModel.handle(event:)`.
 struct PanelContentView: View {
     @ObservedObject var viewModel: PanelViewModel
+    /// Observed so the panel re-renders live when the font-size slider moves.
+    /// Its `fontScale` is injected into the environment for `.scaledFont(_:)`.
+    @ObservedObject var preferences: Preferences
     @FocusState private var searchFocused: Bool
 
     var body: some View {
@@ -21,7 +24,7 @@ struct PanelContentView: View {
                 TextField(searchPlaceholder, text: searchTextBinding)
                     .textFieldStyle(.plain)
                     .focused($searchFocused)
-                    .font(.system(size: 14))
+                    .scaledFont(14)
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
@@ -75,6 +78,9 @@ struct PanelContentView: View {
         .onChange(of: viewModel.focusRequestTick) { _, _ in
             DispatchQueue.main.async { searchFocused = true }
         }
+        // Outermost so every descendant — including the QuickLook overlay —
+        // picks up the scale. `.scaledFont(_:)` reads this value.
+        .environment(\.panelFontScale, CGFloat(preferences.fontScale))
     }
 
     // MARK: - Mode-derived bindings
@@ -175,7 +181,7 @@ private struct SnippetPreview: View {
             if let text, !text.isEmpty {
                 ScrollView {
                     Text(text)
-                        .font(.system(.body, design: .monospaced))
+                        .scaledFont(13, design: .monospaced)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .textSelection(.enabled)
                         .padding(14)
@@ -265,26 +271,30 @@ private struct EntryRow: View {
                 .frame(width: 2)
                 .clipShape(Capsule())
             icon
+                // TODO(font-scale): this icon frame is fixed, so source-app /
+                // kind icons stay small relative to text at high `panelFontScale`.
+                // Follow-up: scale icon frames (and tree indents in TreeView) with
+                // `@Environment(\.panelFontScale)` so the whole row grows together.
                 .frame(width: 18, height: 18)
             VStack(alignment: .leading, spacing: 2) {
                 Text(previewText)
                     .lineLimit(2)
-                    .font(.system(size: 12))
+                    .scaledFont(12)
                 HStack(spacing: 6) {
                     if entry.isPinned {
                         Image(systemName: "pin.fill")
                             .foregroundStyle(.orange)
-                            .font(.system(size: 9))
+                            .scaledFont(9)
                     }
                     if entry.isObfuscated {
                         Image(systemName: "lock.fill")
                             .foregroundStyle(.secondary)
-                            .font(.system(size: 9))
+                            .scaledFont(9)
                     }
                     if let src = entry.source?.name {
                         Text(src)
                             .foregroundStyle(.secondary)
-                            .font(.system(size: 10))
+                            .scaledFont(10)
                     }
                     if let lang = detectedLanguage {
                         languageChip(lang)
@@ -292,7 +302,7 @@ private struct EntryRow: View {
                     Spacer(minLength: 0)
                     Text(relativeTime(from: entry.createdAt))
                         .foregroundStyle(.secondary)
-                        .font(.system(size: 10))
+                        .scaledFont(10)
                 }
             }
             // Batch badge takes priority over the ⌘N shortcut hint — when a
@@ -327,7 +337,7 @@ private struct EntryRow: View {
     /// name so code-ish rows stay scannable without dominating the row.
     private func languageChip(_ language: DetectedLanguage) -> some View {
         Text(language.chipLabel)
-            .font(.system(size: 9, weight: .semibold, design: .monospaced))
+            .scaledFont(9, weight: .semibold, design: .monospaced)
             .foregroundStyle(.secondary)
             .padding(.horizontal, 4)
             .padding(.vertical, 1)
@@ -341,7 +351,7 @@ private struct EntryRow: View {
     /// tint so the badge stays legible against the accent background.
     private func shortcutBadge(_ hint: String) -> some View {
         Text(hint)
-            .font(.system(size: 10, weight: .medium, design: .monospaced))
+            .scaledFont(10, weight: .medium, design: .monospaced)
             .foregroundStyle(isSelected ? .primary : .secondary)
             .padding(.horizontal, 5)
             .padding(.vertical, 2)
@@ -362,7 +372,7 @@ private struct EntryRow: View {
     /// `⌘N` shortcut hint.
     private func batchBadge(_ position: Int) -> some View {
         Text("\(position)")
-            .font(.system(size: 10, weight: .semibold, design: .monospaced))
+            .scaledFont(10, weight: .semibold, design: .monospaced)
             .foregroundStyle(.white)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
@@ -454,18 +464,18 @@ private struct EntryPreviewView: View {
             Spacer()
             if let nick = entry.obfuscationNickname, !nick.isEmpty {
                 Text(nick)
-                    .font(.system(size: 14, weight: .medium))
+                    .scaledFont(14, weight: .medium)
             } else {
                 Text("(no nickname)")
                     .italic()
                     .foregroundStyle(.tertiary)
-                    .font(.system(size: 12))
+                    .scaledFont(12)
             }
             Text("••••••••")
-                .font(.system(size: 18, design: .monospaced))
+                .scaledFont(18, design: .monospaced)
                 .foregroundStyle(.secondary)
             Text("Hidden — ⌘O to reveal, ⌘R to rename")
-                .font(.system(size: 10))
+                .scaledFont(10)
                 .foregroundStyle(.tertiary)
             Spacer()
         }
@@ -478,14 +488,14 @@ private struct EntryPreviewView: View {
         case .text(let s):
             ScrollView {
                 Text(s)
-                    .font(.system(size: 13, design: .monospaced))
+                    .scaledFont(13, design: .monospaced)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .textSelection(.enabled)
             }
         case .rtf(_, let plain):
             ScrollView {
                 Text(plain)
-                    .font(.system(size: 13, design: .monospaced))
+                    .scaledFont(13, design: .monospaced)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .textSelection(.enabled)
             }
@@ -500,7 +510,7 @@ private struct EntryPreviewView: View {
                         .foregroundStyle(.secondary)
                 }
                 Text("\(w) × \(h)")
-                    .font(.caption)
+                    .scaledFont(11)
                     .foregroundStyle(.secondary)
             }
         case .fileURLs(let urls):
@@ -508,7 +518,7 @@ private struct EntryPreviewView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(urls, id: \.self) { url in
                         Text(url.path)
-                            .font(.system(.caption, design: .monospaced))
+                            .scaledFont(11, design: .monospaced)
                             .textSelection(.enabled)
                     }
                 }
