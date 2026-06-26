@@ -210,5 +210,25 @@
             type="application/octet-stream"
         />
     </item>
+    <item>
+        <title>Version 0.2.11</title>
+        <pubDate>Fri, 26 Jun 2026 14:46:33 +0000</pubDate>
+        <sparkle:version>13</sparkle:version>
+        <sparkle:shortVersionString>0.2.11</sparkle:shortVersionString>
+        <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+        <link>https://github.com/birchsport/clipboard-manager/releases/tag/v0.2.11</link>
+        <description><![CDATA[
+<ul>
+    <li>Add adjustable panel font size (100–200%)</li>
+</ul>
+            <p style="font-size:smaller;color:#888;">Full notes: <a href="https://github.com/birchsport/clipboard-manager/releases/tag/v0.2.11">v0.2.11 on GitHub</a>.</p>
+        ]]></description>
+        <enclosure
+            url="https://github.com/birchsport/clipboard-manager/releases/download/v0.2.11/Birchboard-0.2.11.dmg"
+            sparkle:edSignature="K3iNsxHbz/bxYU4JEFt+pn+w4WbHpjj13/ul6ElEwoWC/crT5w3231L5/nJ5GuviN/jjYY1zoWF2txxUs0ltCA=="
+            length="5235966"
+            type="application/octet-stream"
+        />
+    </item>
     </channel>
 </rss>
